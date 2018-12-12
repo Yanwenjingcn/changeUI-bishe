@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.*;
 * @author Wengie Yan
 * @date 2018年12月12日
  */
-public class GUIParameterSetting extends Dialog {
+public class GUIParameterSettingUI extends Dialog {
 
 	protected int result;
 	protected Shell parameterSettingShell;
@@ -40,7 +40,7 @@ public class GUIParameterSetting extends Dialog {
 	 * @param: @param style
 	 * @throws
 	 */
-	public GUIParameterSetting(Shell parent, int style) {
+	public GUIParameterSettingUI(Shell parent, int style) {
 		super(parent, style);
 		setText("SWT Dialog");
 	}

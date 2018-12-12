@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-public class GUIAlgothrimSetting extends Dialog {
+public class GUIAlgothrimSettingUI extends Dialog {
 
 	protected int result;
 	protected Shell shell;
@@ -27,7 +27,7 @@ public class GUIAlgothrimSetting extends Dialog {
 	 * @param parent
 	 * @param style
 	 */
-	public GUIAlgothrimSetting(Shell parent, int style) {
+	public GUIAlgothrimSettingUI(Shell parent, int style) {
 		super(parent, style);
 		setText("SWT Dialog");
 	}

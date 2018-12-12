@@ -17,9 +17,9 @@ import org.generate.util.CommonParametersUtil;
 import org.schedule.algorithm.Makespan;
 import org.temp.Semple;
 
-import UI.dialog.GUIAddRoundTimesSetting;
-import UI.dialog.GUIAlgothrimSetting;
-import UI.dialog.GUIParameterSetting;
+import UI.dialog.GUIAddRoundTimesSettingUI;
+import UI.dialog.GUIAlgothrimSettingUI;
+import UI.dialog.GUIParameterSettingUI;
 import UI.muxAnaly.MuxAnalyUI;
 import UI.parameters.UICommonParameters;
 import UI.singleAnaly.SingleAnalyUI;
@@ -367,7 +367,7 @@ class UI {
 	public void ChooseAlgorithm() {
 
 		// 构建一个新的页面（填写参数的那种）
-		GUIAlgothrimSetting algorithmDialog = new GUIAlgothrimSetting(new Shell(), SWT.TITLE);
+		GUIAlgothrimSettingUI algorithmDialog = new GUIAlgothrimSettingUI(new Shell(), SWT.TITLE);
 
 		if (algorithmDialog.open() != SWT.OK)
 			return;
@@ -392,7 +392,7 @@ class UI {
 	 */
 	public void BuildParameters() {
 
-		GUIParameterSetting pasetdialog = new GUIParameterSetting(new Shell(), SWT.TITLE);
+		GUIParameterSettingUI pasetdialog = new GUIParameterSettingUI(new Shell(), SWT.TITLE);
 
 		if (pasetdialog.open() != SWT.OK)
 			return;
@@ -411,7 +411,7 @@ class UI {
 	
 	public void BuildRoundTimesParameters() {
 
-		GUIAddRoundTimesSetting roundTimesdialog = new GUIAddRoundTimesSetting(new Shell(), SWT.TITLE);
+		GUIAddRoundTimesSettingUI roundTimesdialog = new GUIAddRoundTimesSettingUI(new Shell(), SWT.TITLE);
 		if (roundTimesdialog.open() != SWT.OK)
 			return;
 		System.out.println("CommonParametersUtil.defaultRoundTime="+CommonParametersUtil.defaultRoundTime);

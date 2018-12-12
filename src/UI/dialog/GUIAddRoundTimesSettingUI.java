@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.generate.util.CommonParametersUtil;
 
-public class GUIAddRoundTimesSetting extends Dialog {
+public class GUIAddRoundTimesSettingUI extends Dialog {
 
 	protected int result;
 	protected Shell shell;
@@ -25,7 +25,7 @@ public class GUIAddRoundTimesSetting extends Dialog {
 	 * @param parent
 	 * @param style
 	 */
-	public GUIAddRoundTimesSetting(Shell parent, int style) {
+	public GUIAddRoundTimesSettingUI(Shell parent, int style) {
 		super(parent, style);
 		setText("SWT Dialog");
 	}
