@@ -7,9 +7,12 @@ import org.eclipse.swt.widgets.*;
 
 
 /**
- * 参与算法选择
+ * 
+* @ClassName: GUIAlgothrimSetting
+* @Description: 选择参与比较的算法
+* @author Wengie Yan
+* @date 2018年12月12日
  */
-
 public class GUIAlgothrimSetting extends Dialog {
 
     protected int result;
@@ -112,50 +115,46 @@ public class GUIAlgothrimSetting extends Dialog {
 	            public void widgetSelected(SelectionEvent e) {
 
 	                if (FIFOButton.getSelection()){
-	                	
 	                    FIFOFlag = 1;
-	                    
 	                }else {
 	                	FIFOFlag =0;
 					}
 	                	
 	                if (EDFButton.getSelection()){
 	                	EDFFlag = 1;
-	                	
 	                }else {
 	                	EDFFlag = 0;
 					}
 	                    
 	                if (STFButton.getSelection()){
 	                	STFFlag = 1;
-	                	
 	                }else {
 	                	STFFlag = 0;
 					}
 	                    
 	                if (EFTFButton.getSelection()){
 	                	EFTFFlag = 1;
-	                	
-	                	
 	                }else {
 	                	EFTFFlag = 0;
 					}
-	                    
 	                if (WorkflowbasedButton.getSelection()){
 	                	WorkflowbasedFlag = 1;
-	                	
 	                }else {
 	                	WorkflowbasedFlag = 0;
 					}           
+	                
+	                
+	                
+	                /**
+	                 * 添加新的算法这里要改写
+	                 */
+	                
 	                
 	                result = SWT.OK;
 
 	                shlAgfafd.close();
 	            }
-	        });
-	        
-	        
-	        
+	        }); 
 	        
 	        btnNewButton.setSelection(true);
 	        btnNewButton.setBounds(69, 354, 80, 27);

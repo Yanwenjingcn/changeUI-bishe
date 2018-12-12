@@ -193,6 +193,7 @@ public class GUIScheduleRunner {
             }
         });
         tltmNewItem_8.setText("Workflow-based");
+        
         tabFolder = new TabFolder(shlElasticworkflowsim, SWT.NONE);
         tabFolder.setLayoutData(BorderLayout.CENTER);
 

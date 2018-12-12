@@ -1,4 +1,4 @@
-package UI.utils;
+package UI.muxAnaly;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,11 +20,11 @@ public class MuxAnalyConclusion {
 	public static void setConclusion(Table table, HashMap<String, String> resultMap) {
 		targetTable=table;
 		
+		//解析计算结果
 		splitResultMap(resultMap);
 
 		//1 处理器利用率最高
 		setHighER();
-		
 		//2 处理器利用率最低
 		setLowER();
 		insertBlankData("", "", "", "");
@@ -32,24 +32,20 @@ public class MuxAnalyConclusion {
 		
 		//3 处理器有效利用率最高
 		setHighUER();
-		
 		//4 处理器有效利用率最低
 		setLowUER();
 		insertBlankData("", "", "", "");
 		
 		//5 完成率最高
 		setHighCR();
-		
 		//6 完成率最低
 		setLowCR();
-		
 		insertBlankData("", "", "", "");
 		
-		//7
+		//7、执行时间最长的
 		setHighET();
-		
+		//8、执行时间最短的
 		setLowET();
-		
 		insertBlankData("", "", "", "");
 		
 		
@@ -208,6 +204,7 @@ public class MuxAnalyConclusion {
 		UERs.clear();
 		CRs.clear();
 		ETs.clear();
+		
 		for(Map.Entry<String, String> map:resultMap.entrySet()){
 			String value=map.getValue();
 			ERs.put(map.getKey(), Double.valueOf(value.split(",")[0]));

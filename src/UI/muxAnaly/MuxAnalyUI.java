@@ -1,8 +1,5 @@
 package UI.muxAnaly;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -14,13 +11,14 @@ import org.eclipse.swt.widgets.TableItem;
 import org.generate.util.CommonParametersUtil;
 
 import UI.parameters.UICommonParameters;
-import UI.utils.MuxAnalyConclusion;
 
 public class MuxAnalyUI {
 
 	protected Object result;
 	protected Shell shell;
+	//上半部表格
 	private static Table tableUp;
+	//下半部表格
 	private Table tableDown;
 
 
@@ -32,12 +30,17 @@ public class MuxAnalyUI {
 	 */
 	public static void openOne() throws Throwable {
 		try {
+			//1、先进行多伦计算，获取计算结果
 			BatchCalculate batchAnaly = new BatchCalculate(CommonParametersUtil.defaultRoundTime);
 			batchAnaly.roundAnaly();
+			
+			//2、将计算平均结果值翻入到UI的全局结果参数中
 			UICommonParameters.resultMap = batchAnaly.getResult();
 
-			MuxAnalyUI window = new MuxAnalyUI();
-			window.open();
+			//3、打开UI进行结果填充
+			MuxAnalyUI muxAnalyUI = new MuxAnalyUI();
+			muxAnalyUI.open();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -45,6 +48,7 @@ public class MuxAnalyUI {
 
 	/**
 	 * Open the dialog.
+	 * @wbp.parser.entryPoint
 	 */
 	public void open() {
 		Display display = Display.getDefault();
@@ -69,16 +73,16 @@ public class MuxAnalyUI {
 		shell.setText("SWT Application");
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
 
-		Composite composite = new Composite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
-		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
+		Composite compositeUp = new Composite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
+		compositeUp.setLayout(new FillLayout(SWT.HORIZONTAL));
 
-		Table checkboxTableViewer = new Table(composite, SWT.BORDER | SWT.FULL_SELECTION);
-		tableUp = checkboxTableViewer;
+		tableUp = new Table(compositeUp, SWT.BORDER | SWT.FULL_SELECTION);
 
-		Composite composite_1 = new Composite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
-		composite_1.setLayout(new FillLayout(SWT.HORIZONTAL));
-
-		tableDown = new Table(composite_1, SWT.BORDER | SWT.FULL_SELECTION);
+		Composite compositeDown = new Composite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
+		compositeDown.setLayout(new FillLayout(SWT.HORIZONTAL));
+		tableDown = new Table(compositeDown, SWT.BORDER | SWT.FULL_SELECTION);
+		
+		
 		tableDown.setHeaderVisible(true);
 		tableDown.setLinesVisible(true);
 		tableUp.setHeaderVisible(true);
@@ -94,6 +98,12 @@ public class MuxAnalyUI {
 
 	}
 
+	/**
+	 * 
+	 * @Title: insertDataInTableDown
+	 * @Description: 构建下表格并向其中插入数据
+	 * @return void
+	 */
 	private void insertDataInTableDown() {
 		// 创建下表头的字符串数组
 		String[] tableDownHeader = { "比较项", "算法名", "结果值", "结论" };
@@ -104,18 +114,22 @@ public class MuxAnalyUI {
 			tableColumn.setMoveable(true);
 		}
 
-		//设置内容
+		//往下表格中添加内容
 		MuxAnalyConclusion.setConclusion(tableDown,UICommonParameters.resultMap);
+		
+		
 		// 重新布局表格
 		for (int i = 0; i < tableDownHeader.length; i++) {
 			tableDown.getColumn(i).pack();
 		}
+		
 	}
-
+	
 	/**
-	 * 往上表格插入数据
 	 * 
-	 * @param tableHeader
+	 * @Title: insertDataInTableUp
+	 * @Description: 构建上表格并向其中插入数据
+	 * @return void
 	 */
 	public static void insertDataInTableUp() {
 
@@ -128,23 +142,27 @@ public class MuxAnalyUI {
 			tableColumn.setMoveable(true);
 		}
 		if (CommonParametersUtil.FIFO == 1) {
-			insertDataUp("FIFO", UICommonParameters.resultMap.get("fifo.txt"));
+			insertDataUp("FIFO", UICommonParameters.resultMap.get("FIFO"));
 		}
 		if (CommonParametersUtil.EDF == 1) {
-			insertDataUp("EDF", UICommonParameters.resultMap.get("edf.txt"));
+			insertDataUp("EDF", UICommonParameters.resultMap.get("EDF"));
 		}
 
 		if (CommonParametersUtil.STF == 1) {
-			insertDataUp("STF", UICommonParameters.resultMap.get("stf.txt"));
+			insertDataUp("STF", UICommonParameters.resultMap.get("STF"));
 		}
 
 		if (CommonParametersUtil.EFTF == 1) {
-			insertDataUp("EFTF", UICommonParameters.resultMap.get("eftf.txt"));
+			insertDataUp("EFTF", UICommonParameters.resultMap.get("EFTF"));
 		}
 
 		if (CommonParametersUtil.Workflowbased == 1) {
-			insertDataUp("Semple", UICommonParameters.resultMap.get("semple.txt"));
+			insertDataUp("Semple", UICommonParameters.resultMap.get("WorkflowBased"));
 		}
+		
+		/**
+		 * 添加新算法时这里也要添加
+		 */
 
 		// 重新布局表格
 		for (int i = 0; i < tableUpHeader.length; i++) {

@@ -7,15 +7,15 @@ import org.eclipse.swt.widgets.*;
 
 /**
  * 
- * @ClassName: 参数设置
- * @Description: set parameters of initial page
- * @author YanWenjing
- * @date 2018-1-15 ����1:51:28
+* @ClassName: GUIParameterSetting
+* @Description: 参数设置框
+* @author Wengie Yan
+* @date 2018年12月12日
  */
 public class GUIParameterSetting extends Dialog {
 
 	protected int result;
-	protected Shell shlParameterSetting;
+	protected Shell parameterSettingShell;
 	private Text text;
 	private Text text_1;
 	private Text text_2;
@@ -29,11 +29,12 @@ public class GUIParameterSetting extends Dialog {
 	public double deadLineTimes;
 	public int processorNumber;
 	
+	//多次分析时 默认计算轮次
 	public int defaultRoundTime=2;
 
 	/**
 	 * 
-	 * @Title: parametersetting
+	 * @Title: GUIParameterSetting
 	 * @Description: Create the dialog.
 	 * @param: @param parent
 	 * @param: @param style
@@ -53,10 +54,10 @@ public class GUIParameterSetting extends Dialog {
 	 */
 	public int open() {
 		createContents();
-		shlParameterSetting.open();
-		shlParameterSetting.layout();
+		parameterSettingShell.open();
+		parameterSettingShell.layout();
 		Display display = getParent().getDisplay();
-		while (!shlParameterSetting.isDisposed()) {
+		while (!parameterSettingShell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
@@ -70,49 +71,49 @@ public class GUIParameterSetting extends Dialog {
 	 * @Description:
 	 */
 	private void createContents() {
-		shlParameterSetting = new Shell(getParent(), getStyle());
-		shlParameterSetting.setSize(440, 420);
-		shlParameterSetting.setText("Parameter Setting");
-		shlParameterSetting.setLayout(null);
+		parameterSettingShell = new Shell(getParent(), getStyle());
+		parameterSettingShell.setSize(440, 420);
+		parameterSettingShell.setText("Parameter Setting");
+		parameterSettingShell.setLayout(null);
 
-		Label lblNewLabel = new Label(shlParameterSetting, SWT.NONE);
+		Label lblNewLabel = new Label(parameterSettingShell, SWT.NONE);
 		lblNewLabel.setBounds(24, 30, 96, 17);
 		lblNewLabel.setText("TimeWindow");
 
-		Label lblMaxdeviationrate = new Label(shlParameterSetting, SWT.NONE);
+		Label lblMaxdeviationrate = new Label(parameterSettingShell, SWT.NONE);
 		lblMaxdeviationrate.setText("TaskAverageLength");
 		lblMaxdeviationrate.setBounds(24, 71, 113, 17);
 
-		Label lblPricingInterval = new Label(shlParameterSetting, SWT.NONE);
+		Label lblPricingInterval = new Label(parameterSettingShell, SWT.NONE);
 		lblPricingInterval.setText("DAGAverageSize");
 		lblPricingInterval.setBounds(24, 126, 113, 17);
 
-		text_4 = new Text(shlParameterSetting, SWT.BORDER);
+		text_4 = new Text(parameterSettingShell, SWT.BORDER);
 		text_4.setText("40");
 		text_4.setBounds(190, 126, 73, 23);
 
-		text = new Text(shlParameterSetting, SWT.BORDER);
+		text = new Text(parameterSettingShell, SWT.BORDER);
 		text.setText("40");
 		text.setBounds(190, 71, 73, 23);
 
-		text_1 = new Text(shlParameterSetting, SWT.BORDER);
+		text_1 = new Text(parameterSettingShell, SWT.BORDER);
 		text_1.setText("40000");
 		text_1.setBounds(190, 27, 73, 23);
 
-		Label lbldaglength = new Label(shlParameterSetting, SWT.NONE);
+		Label lbldaglength = new Label(parameterSettingShell, SWT.NONE);
 		lbldaglength.setText("(optional:20/40/60)");
 		lbldaglength.setBounds(270, 71, 156, 17);
 
-		Label lbldagsize = new Label(shlParameterSetting, SWT.NONE);
+		Label lbldagsize = new Label(parameterSettingShell, SWT.NONE);
 		lbldagsize.setText("(optional:20/40/60)");
 		lbldagsize.setBounds(270, 126, 156, 17);
 
-		Label lblRuntimeDistributionType = new Label(shlParameterSetting,
+		Label lblRuntimeDistributionType = new Label(parameterSettingShell,
 				SWT.NONE);
 		lblRuntimeDistributionType.setText("DAGLevelFlag");
 		lblRuntimeDistributionType.setBounds(24, 175, 156, 17);
 
-		Composite composite = new Composite(shlParameterSetting, SWT.NONE);
+		Composite composite = new Composite(parameterSettingShell, SWT.NONE);
 		composite.setBounds(190, 157, 214, 64);
 
 		final Button btnRadioButton_2 = new Button(composite, SWT.RADIO);
@@ -128,19 +129,19 @@ public class GUIParameterSetting extends Dialog {
 		btnRadioButton.setBounds(0, 21, 97, 17);
 		btnRadioButton.setText("1");
 
-		Label lblSystemBandwidth = new Label(shlParameterSetting, SWT.NONE);
+		Label lblSystemBandwidth = new Label(parameterSettingShell, SWT.NONE);
 		lblSystemBandwidth.setText("DeadlineTimes");
 		lblSystemBandwidth.setBounds(24, 234, 109, 17);
 
-		text_2 = new Text(shlParameterSetting, SWT.BORDER);
+		text_2 = new Text(parameterSettingShell, SWT.BORDER);
 		text_2.setText("1.1");
 		text_2.setBounds(190, 231, 73, 23);
 
-		Label lbldead = new Label(shlParameterSetting, SWT.NONE);
+		Label lbldead = new Label(parameterSettingShell, SWT.NONE);
 		lbldead.setText("(optional:1.05/1.1/1.2)");
 		lbldead.setBounds(270, 231, 156, 17);
 
-		Button btnNewButton = new Button(shlParameterSetting, SWT.NONE);
+		Button btnNewButton = new Button(parameterSettingShell, SWT.NONE);
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -159,33 +160,33 @@ public class GUIParameterSetting extends Dialog {
 
 				result = SWT.OK;
 
-				shlParameterSetting.close();
+				parameterSettingShell.close();
 			}
 		});
 		btnNewButton.setSelection(true);
 		btnNewButton.setBounds(80, 330, 80, 27);
 		btnNewButton.setText("OK");
 
-		Button btnNewButton_1 = new Button(shlParameterSetting, SWT.NONE);
+		Button btnNewButton_1 = new Button(parameterSettingShell, SWT.NONE);
 		btnNewButton_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				result = SWT.CANCEL;
-				shlParameterSetting.close();
+				parameterSettingShell.close();
 			}
 		});
 		btnNewButton_1.setBounds(220, 330, 80, 27);
 		btnNewButton_1.setText("Cancel");
 
-		Label lblVmSetupTime = new Label(shlParameterSetting, SWT.NONE);
+		Label lblVmSetupTime = new Label(parameterSettingShell, SWT.NONE);
 		lblVmSetupTime.setText("ProcessorNumber");
 		lblVmSetupTime.setBounds(24, 273, 113, 17);
 
-		text_3 = new Text(shlParameterSetting, SWT.BORDER);
+		text_3 = new Text(parameterSettingShell, SWT.BORDER);
 		text_3.setText("8");
 		text_3.setBounds(190, 270, 73, 23);
 
-		Label lblSeconds = new Label(shlParameterSetting, SWT.NONE);
+		Label lblSeconds = new Label(parameterSettingShell, SWT.NONE);
 		lblSeconds.setText("(optional:4/8/16)");
 		lblSeconds.setBounds(270, 273, 156, 17);
 	}

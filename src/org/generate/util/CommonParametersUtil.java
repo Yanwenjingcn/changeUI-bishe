@@ -22,9 +22,6 @@ public class CommonParametersUtil {
 	public static int processorNumber = 8;
 
 
-
-
-
 	public static int FIFO=0;
 	public static int EDF=0;
 	public static int STF=0;

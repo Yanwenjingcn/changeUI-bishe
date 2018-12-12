@@ -69,9 +69,8 @@ public class SingleAnalyUI {
 		TabItem algoTabItem = new TabItem(tabFolder, SWT.NONE);
 		algoTabItem.setText(itemname);
 
-		// 构建滑块的页面
-		ScrolledComposite scrolledCompositeAlgo = new ScrolledComposite(tabFolder,
-				SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		// 构建带滑块的组件页面
+		ScrolledComposite scrolledCompositeAlgo = new ScrolledComposite(tabFolder,SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		scrolledCompositeAlgo.setExpandHorizontal(true);
 		scrolledCompositeAlgo.setExpandVertical(true);
 
@@ -110,6 +109,14 @@ public class SingleAnalyUI {
 		return algoTabItem;
 	}
 
+	/**
+	 * 
+	 * @Title: addAlgothrimTask
+	 * @Description: 将算法中task块结果添加到界面中
+	 * @param compositeAlgo
+	 * @param AlgoName
+	 * @return void
+	 */
 	public static void addAlgothrimTask(Composite compositeAlgo, String AlgoName) {
 
 		int lengthtimes = 1;
@@ -216,8 +223,7 @@ public class SingleAnalyUI {
 		tbtmConsole.setText(text);
 
 		// 滚动面板
-		ScrolledComposite scrolledComposite = new ScrolledComposite(tabFolder,
-				SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		ScrolledComposite scrolledComposite = new ScrolledComposite(tabFolder,SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		tbtmConsole.setControl(scrolledComposite);
 		scrolledComposite.setExpandHorizontal(true);
 		scrolledComposite.setExpandVertical(true);

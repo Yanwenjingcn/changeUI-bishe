@@ -17,6 +17,7 @@ import org.generate.util.CommonParametersUtil;
 import org.schedule.algorithm.Makespan;
 import org.temp.Semple;
 
+import UI.dialog.GUIAddRoundTimesSetting;
 import UI.dialog.GUIAlgothrimSetting;
 import UI.dialog.GUIParameterSetting;
 import UI.muxAnaly.MuxAnalyUI;
@@ -30,6 +31,25 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 
+
+
+/**
+ * 
+ * 需要改进的地方：
+ * 
+ * 1、按钮的可见与不可见应该与tabfloder相反 2、每次点击还原后tabfloder应该是重新生成的
+ * 3、tabfloder的可适应性变化 4、多次分析的内容完善（建议还是创建新的类吧）
+ * 
+ * 
+ */
+
+/**
+ * 
+ * @ClassName: UI
+ * @Description: TODO
+ * @author Wengie Yan
+ * @date 2018年12月12日
+ */
 class UI {
 
 	protected Shell shell;
@@ -91,7 +111,8 @@ class UI {
 		UICommonParameters.shell = shell;
 		shell.setSize(800, 500);
 		shell.setText("RTWSim");
-		shell.setLayout(null);
+		//shell.setLayout(null);
+		shell.setLayout(new BorderLayout(0, 0));
 
 		final Button button = new Button(shell, SWT.NONE);
 		final Button button_1 = new Button(shell, SWT.NONE);
@@ -100,6 +121,7 @@ class UI {
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
 
+		//--------------------选择算法按钮------------------------
 		MenuItem Chooseslgorithm = new MenuItem(menu, SWT.NONE);
 		Chooseslgorithm.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -109,15 +131,30 @@ class UI {
 		});
 		Chooseslgorithm.setText("ChooseAlgorithm");
 
-		MenuItem Builderparameters = new MenuItem(menu, SWT.NONE);
-		Builderparameters.addSelectionListener(new SelectionAdapter() {
+		//----------------------构建参数按钮---------------------
+		MenuItem mntmNewSubmenu = new MenuItem(menu, SWT.CASCADE);
+		mntmNewSubmenu.setText("BuilderParameters");
+		
+		Menu menu_2 = new Menu(mntmNewSubmenu);
+		mntmNewSubmenu.setMenu(menu_2);
+		
+		MenuItem mntmBuildcommomparameters = new MenuItem(menu_2, SWT.NONE);
+		mntmBuildcommomparameters.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				BuildParameters();
-
 			}
 		});
-		Builderparameters.setText("BuilderParameters");
+		mntmBuildcommomparameters.setText("BuildCommomParameters");
+		
+		MenuItem mntmBuildroundtimes = new MenuItem(menu_2, SWT.NONE);
+		mntmBuildroundtimes.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				BuildRoundTimesParameters();
+			}
+		});
+		mntmBuildroundtimes.setText("BuildRoundTimes");
 
 		// -----------------还原按钮------------------
 		MenuItem mntmHuanyuan = new MenuItem(menu, SWT.NONE);
@@ -162,18 +199,9 @@ class UI {
 				}
 			}
 		});
-		mntmHuanyuan.setText("huanyuan");
-
-		/**
-		 * 
-		 * 需要改进的地方：
-		 * 
-		 * 1、按钮的可见与不可见应该与tabfloder相反 2、每次点击还原后tabfloder应该是重新生成的
-		 * 3、tabfloder的可适应性变化 4、多次分析的内容完善（建议还是创建新的类吧）
-		 * 
-		 * 
-		 */
-
+		mntmHuanyuan.setText("restore");
+		
+		//----------------------工具按钮-----------------------
 		MenuItem mntmTools = new MenuItem(menu, SWT.CASCADE);
 		mntmTools.setText("Tools");
 
@@ -257,6 +285,7 @@ class UI {
 				CommonParametersUtil.STF = 0;
 				CommonParametersUtil.EFTF = 0;
 				CommonParametersUtil.Workflowbased = 0;
+				CommonParametersUtil.defaultRoundTime=2;
 			}
 		});
 		button_1.setText("多次分析");
@@ -329,6 +358,12 @@ class UI {
 		}
 	}
 
+	/**
+	 * 
+	 * @Title: ChooseAlgorithm
+	 * @Description: 选择要参与比较的算法
+	 * @return void
+	 */
 	public void ChooseAlgorithm() {
 
 		// 构建一个新的页面（填写参数的那种）
@@ -348,10 +383,12 @@ class UI {
 
 	}
 
+	
 	/**
-	 * @throws @Title:
-	 *             BuildParameters
-	 * @Description: get parameters
+	 * 
+	 * @Title: BuildParameters
+	 * @Description:设置参数
+	 * @return void
 	 */
 	public void BuildParameters() {
 
@@ -365,15 +402,19 @@ class UI {
 		CommonParametersUtil.dagLevelFlag = pasetdialog.dagLevelFlag;
 		CommonParametersUtil.deadLineTimes = pasetdialog.deadLineTimes;
 		CommonParametersUtil.processorNumber = pasetdialog.processorNumber;
-		CommonParametersUtil.defaultRoundTime = pasetdialog.defaultRoundTime;
+		//CommonParametersUtil.defaultRoundTime = pasetdialog.defaultRoundTime;
+		
+	//	System.out.println("CommonParametersUtil.timeWindow="+CommonParametersUtil.timeWindow+"*****************CommonParametersUtil.taskAverageLength="+CommonParametersUtil.taskAverageLength);
+	}
 
-		// System.out.println(CommonParametersUtil.timeWindow +""+
-		// CommonParametersUtil.taskAverageLength+" "+
-		// CommonParametersUtil.dagAverageSize +" "+
-		// CommonParametersUtil.dagLevelFlag +" "+
-		// CommonParametersUtil.deadLineTimes +" "+
-		// CommonParametersUtil.processorNumber+" "+
-		// CommonParametersUtil.defaultRoundTime );
+	
+	
+	public void BuildRoundTimesParameters() {
+
+		GUIAddRoundTimesSetting roundTimesdialog = new GUIAddRoundTimesSetting(new Shell(), SWT.TITLE);
+		if (roundTimesdialog.open() != SWT.OK)
+			return;
+		System.out.println("CommonParametersUtil.defaultRoundTime="+CommonParametersUtil.defaultRoundTime);
 
 	}
 
