@@ -111,12 +111,12 @@ class UI {
 		UICommonParameters.shell = shell;
 		shell.setSize(800, 500);
 		shell.setText("RTWSim");
-		//shell.setLayout(null);
 		shell.setLayout(new BorderLayout(0, 0));
 
 		final Button button = new Button(shell, SWT.NONE);
 		final Button button_1 = new Button(shell, SWT.NONE);
-		button.setBounds(232, 114, 196, 47);
+		button.setBounds(260, 114, 200, 47);
+		button_1.setBounds(260, 290, 200, 47);
 
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -132,11 +132,11 @@ class UI {
 		Chooseslgorithm.setText("ChooseAlgorithm");
 
 		//----------------------构建参数按钮---------------------
-		MenuItem mntmNewSubmenu = new MenuItem(menu, SWT.CASCADE);
-		mntmNewSubmenu.setText("BuilderParameters");
+		MenuItem buildPeremetersMenu = new MenuItem(menu, SWT.CASCADE);
+		buildPeremetersMenu.setText("BuilderParameters");
 		
-		Menu menu_2 = new Menu(mntmNewSubmenu);
-		mntmNewSubmenu.setMenu(menu_2);
+		Menu menu_2 = new Menu(buildPeremetersMenu);
+		buildPeremetersMenu.setMenu(menu_2);
 		
 		MenuItem mntmBuildcommomparameters = new MenuItem(menu_2, SWT.NONE);
 		mntmBuildcommomparameters.addSelectionListener(new SelectionAdapter() {
@@ -199,7 +199,7 @@ class UI {
 				}
 			}
 		});
-		mntmHuanyuan.setText("restore");
+		mntmHuanyuan.setText("Restore");
 		
 		//----------------------工具按钮-----------------------
 		MenuItem mntmTools = new MenuItem(menu, SWT.CASCADE);
@@ -216,7 +216,7 @@ class UI {
 
 		// ------------------单次分析--------------------------
 
-		button_1.setBounds(232, 291, 196, 47);
+		
 
 		button.addMouseListener(new MouseAdapter() {
 			@Override

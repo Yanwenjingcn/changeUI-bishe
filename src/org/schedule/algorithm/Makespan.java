@@ -78,7 +78,7 @@ public class Makespan {
 
 	private static Map<Integer, Integer> cloudletInVmId;
 	
-	private static long interval=0;
+	private static String interval="";
 
 	public Makespan() {
 		ready_queue = new ArrayList<Task>();
@@ -152,7 +152,9 @@ public class Makespan {
 				/ (temp1[0] * pe_number));
 		
 		Date b = new Date();
-		interval = (b.getTime() - a.getTime())/1000;
+		//DecimalFormat df = new DecimalFormat("0.0000");
+		//resultMap.put(algoName, df.format(((double) ER / lineCount)
+		interval = df.format((b.getTime() - a.getTime())/1000);
 		printInfileFIFO();
 	}
 	
@@ -220,7 +222,9 @@ public class Makespan {
 				/ (temp2[0] * pe_number));
 		
 		Date b = new Date();
-		interval = (b.getTime() - a.getTime())/1000;
+	//	DecimalFormat df = new DecimalFormat("0.0000");
+		//resultMap.put(algoName, df.format(((double) ER / lineCount)
+		interval = df.format((b.getTime() - a.getTime())/1000);
 		printInfileEDF();
 	}
 	
@@ -287,7 +291,9 @@ public class Makespan {
 				/ (temp3[0] * pe_number));
 		
 		Date b = new Date();
-		interval = (b.getTime() - a.getTime())/1000;
+		//DecimalFormat df = new DecimalFormat("0.0000");
+		//resultMap.put(algoName, df.format(((double) ER / lineCount)
+		interval = df.format((b.getTime() - a.getTime())/1000);
 		printInfileSTF();
 	}
 	
@@ -356,7 +362,8 @@ public class Makespan {
 				/ (temp4[0] * pe_number));
 		
 		Date b = new Date();
-		interval = (b.getTime() - a.getTime())/1000;
+		interval = df.format((b.getTime() - a.getTime())/1000);
+		//interval = (b.getTime() - a.getTime())/1000;
 		printInfileEFTF();
 	}
 	

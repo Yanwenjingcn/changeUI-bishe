@@ -3,175 +3,174 @@ package UI.dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 
-
-/**
- * 
-* @ClassName: GUIAlgothrimSetting
-* @Description: 选择参与比较的算法
-* @author Wengie Yan
-* @date 2018年12月12日
- */
 public class GUIAlgothrimSetting extends Dialog {
 
-    protected int result;
-    protected Shell shlAgfafd;
+	protected int result;
+	protected Shell shell;
+	
+	 public int FIFOFlag = 0;
+	    public int EDFFlag = 0;
+	    public int STFFlag = 0;
+	    public int EFTFFlag = 0;
+	    public int WorkflowbasedFlag = 0;
+	    
 
-    public int FIFOFlag = 0;
-    public int EDFFlag = 0;
-    public int STFFlag = 0;
-    public int EFTFFlag = 0;
-    public int WorkflowbasedFlag = 0;
-    
-    public GUIAlgothrimSetting(Shell parent, int style) {
-        super(parent, style);
-        setText("SWT Dialog");
-    }
+	/**
+	 * Create the dialog.
+	 * @param parent
+	 * @param style
+	 */
+	public GUIAlgothrimSetting(Shell parent, int style) {
+		super(parent, style);
+		setText("SWT Dialog");
+	}
 
-    /**
-     * @throws
-     * @Title: open
-     * @Description: Open the dialog.
-     * @return:
-     */
-    public int open() {
-        createContents();
-        shlAgfafd.open();
-        shlAgfafd.layout();
-        Display display = getParent().getDisplay();
-        while (!shlAgfafd.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
+	/**
+	 * Open the dialog.
+	 * @return the result
+	 */
+	public int open() {
+		createContents();
+		shell.open();
+		shell.layout();
+		Display display = getParent().getDisplay();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Create contents of the dialog.
+	 */
+	private void createContents() {
+
+		shell = new Shell(getParent(), getStyle());
+        shell.setSize(410, 420);
+        shell.setText("Parameter Setting");
+        shell.setLayout(null);
+
+        Label FIFOLabel = new Label(shell, SWT.NONE);
+        FIFOLabel.setText("FIFO");
+        FIFOLabel.setBounds(70, 30, 58, 17);
+        
+
+
+
+        Label EDFLabel = new Label(shell, SWT.NONE);
+        EDFLabel.setText("EDF");
+        EDFLabel.setBounds(70, 80, 88, 17);
+
+
+        Label STFLabel = new Label(shell, SWT.NONE);
+        STFLabel.setText("STF");
+        STFLabel.setBounds(70, 130, 88, 17);
+
+
+        Label EFTFLabel = new Label(shell, SWT.NONE);
+        EFTFLabel.setText("EFTF");
+        EFTFLabel.setBounds(70, 180, 88, 17);
+        
+        
+
+        Label WorkflowbasedLabel = new Label(shell, SWT.NONE);
+        WorkflowbasedLabel.setText("Workflowbased");
+        WorkflowbasedLabel.setBounds(70, 230, 114, 17);
+
+        
+        /**
+         * 每行的纵左边都是间隔50
+         */
+        final Button FIFOButton = new Button(shell, SWT.CHECK);
+        FIFOButton.setBounds(220, 30, 90, 17);
+        FIFOButton.setText("FIFO");
+        final Button EDFButton = new Button(shell, SWT.CHECK);
+        EDFButton.setBounds(220, 80, 97, 17);
+        EDFButton.setText("EDF");
+        final Button STFButton = new Button(shell, SWT.CHECK);
+        STFButton.setBounds(220, 130, 97, 17);
+        STFButton.setText("STF");
+        final Button EFTFButton = new Button(shell, SWT.CHECK);
+        EFTFButton.setBounds(220, 180, 97, 17);
+        EFTFButton.setText("EFTF");
+        final Button WorkflowbasedButton = new Button(shell, SWT.CHECK);
+        WorkflowbasedButton.setBounds(220, 230, 126, 17);
+        WorkflowbasedButton.setText("Workflowbased");
+        
+        //确定按钮
+        Button btnNewButton = new Button(shell, SWT.NONE);
+        btnNewButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+
+                if (FIFOButton.getSelection()){
+                    FIFOFlag = 1;
+                }else {
+                	FIFOFlag =0;
+				}
+                	
+                if (EDFButton.getSelection()){
+                	EDFFlag = 1;
+                }else {
+                	EDFFlag = 0;
+				}
+                    
+                if (STFButton.getSelection()){
+                	STFFlag = 1;
+                }else {
+                	STFFlag = 0;
+				}
+                    
+                if (EFTFButton.getSelection()){
+                	EFTFFlag = 1;
+                }else {
+                	EFTFFlag = 0;
+				}
+                if (WorkflowbasedButton.getSelection()){
+                	WorkflowbasedFlag = 1;
+                }else {
+                	WorkflowbasedFlag = 0;
+				}           
+                
+                
+                /**
+                 * 添加新的算法这里要改写
+                 */
+
+                
+                result = SWT.OK;
+
+                shell.close();
             }
-        }
-        return result;
-    }
-
-    /**
-     * @Title: createContents
-     * @Description:
-     */
-    private void createContents() {
-    	
-		 shlAgfafd = new Shell(getParent(), getStyle());
-	        shlAgfafd.setSize(440, 420);
-	        shlAgfafd.setText("Parameter Setting");
-	        shlAgfafd.setLayout(null);
-
-	        Label FIFOLabel = new Label(shlAgfafd, SWT.NONE);
-	        FIFOLabel.setText("FIFO");
-	        FIFOLabel.setBounds(69, 32, 58, 17);
-	        Composite FIFOcomposite = new Composite(shlAgfafd, SWT.NONE);
-	        FIFOcomposite.setBounds(214, 23, 167, 39);
-	        final Button FIFOButton = new Button(FIFOcomposite, SWT.RADIO);
-	        FIFOButton.setBounds(0, 10, 90, 17);
-	        FIFOButton.setText("FIFO");
+        }); 
+        
+        btnNewButton.setSelection(true);
+        btnNewButton.setBounds(69, 354, 80, 27);
+        btnNewButton.setText("OK");
 
 
-	        Label EDFLabel = new Label(shlAgfafd, SWT.NONE);
-	        EDFLabel.setText("EDF");
-	        EDFLabel.setBounds(69, 99, 88, 17);
-	        Composite EDFcomposite = new Composite(shlAgfafd, SWT.NONE);
-	        EDFcomposite.setBounds(214, 86, 100, 39);
-	        final Button EDFButton = new Button(EDFcomposite, SWT.RADIO);
-	        EDFButton.setBounds(0, 10, 97, 17);
-	        EDFButton.setText("EDF");
+        //取消按钮
+        Button btnNewButton_1 = new Button(shell, SWT.NONE);
+        btnNewButton_1.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                result = SWT.CANCEL;
+                shell.close();
+            }
+        });
+        btnNewButton_1.setBounds(244, 354, 80, 27);
+        btnNewButton_1.setText("Cancel");
+       
 
+	}
 
-	        Label STFLabel = new Label(shlAgfafd, SWT.NONE);
-	        STFLabel.setText("STF");
-	        STFLabel.setBounds(69, 177, 88, 17);
-	        Composite STFcomposite = new Composite(shlAgfafd, SWT.NONE);
-	        STFcomposite.setBounds(210, 173, 214, 38);
-	        final Button STFButton = new Button(STFcomposite, SWT.RADIO);
-	        STFButton.setBounds(0, 10, 97, 17);
-	        STFButton.setText("STF");
-
-
-	        Label EFTFLabel = new Label(shlAgfafd, SWT.NONE);
-	        EFTFLabel.setText("EFTF");
-	        EFTFLabel.setBounds(69, 252, 88, 17);
-	        Composite EFTFcomposite = new Composite(shlAgfafd, SWT.NONE);
-	        EFTFcomposite.setBounds(210, 231, 214, 47);
-	        final Button EFTFButton = new Button(EFTFcomposite, SWT.RADIO);
-	        EFTFButton.setBounds(0, 21, 97, 17);
-	        EFTFButton.setText("EFTF");
-
-	        Label WorkflowbasedLabel = new Label(shlAgfafd, SWT.NONE);
-	        WorkflowbasedLabel.setText("Workflowbased");
-	        WorkflowbasedLabel.setBounds(69, 310, 114, 17);
-	        Composite Workflowbasedcomposite = new Composite(shlAgfafd, SWT.NONE);
-	        Workflowbasedcomposite.setBounds(210, 302, 214, 39);
-	        final Button WorkflowbasedButton = new Button(Workflowbasedcomposite, SWT.RADIO);
-	        WorkflowbasedButton.setBounds(0, 10, 126, 17);
-	        WorkflowbasedButton.setText("Workflowbased");
-	        
-
-	        //确定按钮
-	        Button btnNewButton = new Button(shlAgfafd, SWT.NONE);
-	        btnNewButton.addSelectionListener(new SelectionAdapter() {
-	            @Override
-	            public void widgetSelected(SelectionEvent e) {
-
-	                if (FIFOButton.getSelection()){
-	                    FIFOFlag = 1;
-	                }else {
-	                	FIFOFlag =0;
-					}
-	                	
-	                if (EDFButton.getSelection()){
-	                	EDFFlag = 1;
-	                }else {
-	                	EDFFlag = 0;
-					}
-	                    
-	                if (STFButton.getSelection()){
-	                	STFFlag = 1;
-	                }else {
-	                	STFFlag = 0;
-					}
-	                    
-	                if (EFTFButton.getSelection()){
-	                	EFTFFlag = 1;
-	                }else {
-	                	EFTFFlag = 0;
-					}
-	                if (WorkflowbasedButton.getSelection()){
-	                	WorkflowbasedFlag = 1;
-	                }else {
-	                	WorkflowbasedFlag = 0;
-					}           
-	                
-	                
-	                
-	                /**
-	                 * 添加新的算法这里要改写
-	                 */
-	                
-	                
-	                result = SWT.OK;
-
-	                shlAgfafd.close();
-	            }
-	        }); 
-	        
-	        btnNewButton.setSelection(true);
-	        btnNewButton.setBounds(69, 354, 80, 27);
-	        btnNewButton.setText("OK");
-
-
-	        //取消按钮
-	        Button btnNewButton_1 = new Button(shlAgfafd, SWT.NONE);
-	        btnNewButton_1.addSelectionListener(new SelectionAdapter() {
-	            @Override
-	            public void widgetSelected(SelectionEvent e) {
-	                result = SWT.CANCEL;
-	                shlAgfafd.close();
-	            }
-	        });
-	        btnNewButton_1.setBounds(244, 354, 80, 27);
-	        btnNewButton_1.setText("Cancel");
-
-    }
 }
