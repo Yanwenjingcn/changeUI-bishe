@@ -15,6 +15,7 @@ import org.generate.DagFlowGenerater;
 import org.generate.util.CommonParametersUtil;
 
 import org.schedule.algorithm.Makespan;
+
 import org.temp.Semple;
 
 import UI.dialog.GUIAddRoundTimesSettingUI;
@@ -91,6 +92,7 @@ class UI {
 	/**
 	 * Open the window.
 	 */
+	
 	public void open() {
 		Display display = Display.getDefault();
 		createContents();
@@ -342,6 +344,7 @@ class UI {
 	public void exeOtherAlgorithms() {
 
 		Semple fi = new Semple();
+		//IncreaseSubmitTime fi=new IncreaseSubmitTime();
 
 		String schedulePath = System.getProperty("user.dir") + "\\DAG_XML\\";
 
@@ -402,7 +405,6 @@ class UI {
 		CommonParametersUtil.dagLevelFlag = pasetdialog.dagLevelFlag;
 		CommonParametersUtil.deadLineTimes = pasetdialog.deadLineTimes;
 		CommonParametersUtil.processorNumber = pasetdialog.processorNumber;
-		//CommonParametersUtil.defaultRoundTime = pasetdialog.defaultRoundTime;
 		
 	//	System.out.println("CommonParametersUtil.timeWindow="+CommonParametersUtil.timeWindow+"*****************CommonParametersUtil.taskAverageLength="+CommonParametersUtil.taskAverageLength);
 	}

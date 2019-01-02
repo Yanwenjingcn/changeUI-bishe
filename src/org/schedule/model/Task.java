@@ -27,15 +27,39 @@ public class Task {
 	
 	public int choosePEpre;
 
-	public int ID;    
+	public int ID;  //原本的task编号
+	
+	public int OriTaskId;//合并后的task编号
 
-	public int dagID;	
+	public int getOriTaskId() {
+		return OriTaskId;
+	}
+
+
+
+	public void setOriTaskId(int oriTaskId) {
+		OriTaskId = oriTaskId;
+	}
+
+	public int dagID;	//原本所属DAGID
+	
+	public int OriDAGID;//合并后所属DAGID
+
+	public int getOriDAGID() {
+		return OriDAGID;
+	}
+
+
+
+	public void setOriDAGID(int oriDAGID) {
+		OriDAGID = oriDAGID;
+	}
 
 	public int arrive_time;    
 
-	public int length;   
+	public int length;  //长度 
 
-	public int Ts;    
+	public int Ts;    //执行时长
 
 	public int finish_time;    
 
@@ -51,18 +75,18 @@ public class Task {
 
 	private double upRankValue;
 
-	public ArrayList<Integer> pre_task;		
+	public ArrayList<Integer> pre_task;		//父task列表
 
-	public ArrayList<Integer> suc_task;		
+	public ArrayList<Integer> suc_task;		//子task列表
 
 	//任务最晚结束时间，再晚就会一定影响后续任务的执行
 	public int Deadline;	
 
 	public int NewDeadline;
 
-	public int PEID;	
+	public int PEID;	//已调度上的处理器ID
 
-	public boolean islast;
+	public boolean islast;     //是否为作业的最后一个task
 	
 	private boolean inserte;
 	
@@ -70,9 +94,9 @@ public class Task {
 	
 	public double heftaft;
 
-	public boolean inCriticalPath;
+	public boolean inCriticalPath;    //是否在关键路径上
 
-	public boolean iscriticalnode;
+	public boolean iscriticalnode;     //是否是关键路径上的节点
 
 	public int fillbackstarttime=-1;
 
@@ -80,19 +104,19 @@ public class Task {
 
 	public int fillbackpeid;
 
-	public boolean isfillback = false;
+	public boolean isfillback = false;//是否被调度
 	
-	public boolean fillbackdone = false;
+	public boolean fillbackdone = false;//是否调度完成
 
-	public boolean fillbackready = false;
+	public boolean fillbackready = false;//是否就绪
 
-	public boolean fillbackpass = false;
+	public boolean fillbackpass = false;//是否已过期（即调度失败）
 
-	public boolean prefillbackdone = false;
+	public boolean prefillbackdone = false;  //父task都调度完成
 
-	public boolean prefillbackready = false;
+	public boolean prefillbackready = false;//父task都就绪了
 
-	public boolean prefillbackpass = false;
+	public boolean prefillbackpass = false;//父task中存在调度失败的
 	
 	public Task(){
 		pre_task = new ArrayList<Integer>(); 
@@ -102,6 +126,8 @@ public class Task {
 		inCriticalPath = false;
 		iscriticalnode = false;
 	}
+	
+	
 	
 	public void setnewlevel(int level){
 		this.newlevel = level;
@@ -227,6 +253,14 @@ public class Task {
 		{
 			suc_task.add(suc_.get(i));
 		}
+	}
+	
+	public void replacePre(ArrayList<Integer> pre) {
+		pre_task=pre;
+	}
+	
+	public void replaceChild(ArrayList<Integer> child) {
+		suc_task=child;
 	}
 	
 	public void addToPre(int preId){

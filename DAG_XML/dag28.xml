@@ -1,70 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<adag version="2.1" count="1" index="0" name="DAGdag28" jobCount="8" fileCount="0" childCount="7">
-  <job id="0" nammespace="DAG" name="0" version="1.0" tasklength="46">
-    <uses file="0_1" link="output" register="false" transfer="false" optional="false" type="data" size="2" />
-    <uses file="0_2" link="output" register="false" transfer="false" optional="false" type="data" size="13" />
-    <uses file="0_3" link="output" register="false" transfer="false" optional="false" type="data" size="29" />
-    <uses file="0_4" link="output" register="false" transfer="false" optional="false" type="data" size="42" />
-    <uses file="0_5" link="output" register="false" transfer="false" optional="false" type="data" size="29" />
-    <uses file="0_6" link="output" register="false" transfer="false" optional="false" type="data" size="7" />
+<adag version="2.1" count="1" index="0" name="DAGdag28" jobCount="2" fileCount="0" childCount="1">
+  <job id="0" nammespace="DAG" name="0" version="1.0" tasklength="59">
+    <uses file="0_1" link="output" register="false" transfer="false" optional="false" type="data" size="16" />
   </job>
-  <job id="1" nammespace="DAG" name="1" version="1.0" tasklength="52">
-    <uses file="0_1" link="input" register="false" transfer="false" optional="false" type="data" size="2" />
-    <uses file="1_7" link="output" register="false" transfer="false" optional="false" type="data" size="0" />
-  </job>
-  <job id="2" nammespace="DAG" name="2" version="1.0" tasklength="41">
-    <uses file="0_2" link="input" register="false" transfer="false" optional="false" type="data" size="13" />
-    <uses file="2_7" link="output" register="false" transfer="false" optional="false" type="data" size="0" />
-  </job>
-  <job id="3" nammespace="DAG" name="3" version="1.0" tasklength="24">
-    <uses file="0_3" link="input" register="false" transfer="false" optional="false" type="data" size="29" />
-    <uses file="3_6" link="output" register="false" transfer="false" optional="false" type="data" size="3" />
-  </job>
-  <job id="4" nammespace="DAG" name="4" version="1.0" tasklength="24">
-    <uses file="0_4" link="input" register="false" transfer="false" optional="false" type="data" size="42" />
-    <uses file="4_7" link="output" register="false" transfer="false" optional="false" type="data" size="0" />
-  </job>
-  <job id="5" nammespace="DAG" name="5" version="1.0" tasklength="39">
-    <uses file="0_5" link="input" register="false" transfer="false" optional="false" type="data" size="29" />
-    <uses file="5_6" link="output" register="false" transfer="false" optional="false" type="data" size="9" />
-  </job>
-  <job id="6" nammespace="DAG" name="6" version="1.0" tasklength="15">
-    <uses file="0_6" link="input" register="false" transfer="false" optional="false" type="data" size="7" />
-    <uses file="3_6" link="input" register="false" transfer="false" optional="false" type="data" size="3" />
-    <uses file="5_6" link="input" register="false" transfer="false" optional="false" type="data" size="9" />
-    <uses file="6_7" link="output" register="false" transfer="false" optional="false" type="data" size="0" />
-  </job>
-  <job id="7" nammespace="DAG" name="7" version="1.0" tasklength="0">
-    <uses file="1_7" link="input" register="false" transfer="false" optional="false" type="data" size="0" />
-    <uses file="2_7" link="input" register="false" transfer="false" optional="false" type="data" size="0" />
-    <uses file="4_7" link="input" register="false" transfer="false" optional="false" type="data" size="0" />
-    <uses file="6_7" link="input" register="false" transfer="false" optional="false" type="data" size="0" />
+  <job id="1" nammespace="DAG" name="1" version="1.0" tasklength="30">
+    <uses file="0_1" link="input" register="false" transfer="false" optional="false" type="data" size="16" />
   </job>
   <child ref="1">
     <parent ref="0" />
-  </child>
-  <child ref="2">
-    <parent ref="0" />
-  </child>
-  <child ref="3">
-    <parent ref="0" />
-  </child>
-  <child ref="4">
-    <parent ref="0" />
-  </child>
-  <child ref="5">
-    <parent ref="0" />
-  </child>
-  <child ref="6">
-    <parent ref="0" />
-    <parent ref="3" />
-    <parent ref="5" />
-  </child>
-  <child ref="7">
-    <parent ref="1" />
-    <parent ref="2" />
-    <parent ref="4" />
-    <parent ref="6" />
   </child>
 </adag>
 

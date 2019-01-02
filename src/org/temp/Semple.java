@@ -16,10 +16,10 @@ import java.util.*;
 /**
  * <p>
  * 修改内容：
- * 1、就绪队列调度方式：在调度就绪队列时，选择 开始时间最早的 任务作为调度对象(如果有相同则不是随机选取而是选的最后一个)
+ * 1、就绪队列调度方式：
  * 2、deadline分层方式：从后往前推的
  * 3、添加字段：为任务添加 propertity 字段，任务调度时，同时开始的任务，换照优先级进行排序调度。
- * 4、作业顺序：gap=50，任务数少的优先
+ * 4、作业顺序：
  */
 public class Semple {
 
@@ -39,7 +39,7 @@ public class Semple {
     // 最大任务数
     public static int dagNumMax = 10000;
     // 最大时间窗时间
-    public static int timewindowmax = 9000000;
+    public static int timewindowmax = Integer.MAX_VALUE;
     public static int mesnum = 5;
     //处理器列表
     private static ArrayList<PE> PEList;
@@ -86,10 +86,10 @@ public class Semple {
         DAGMapList = new ArrayList<DAG>();
         DAGDependMap = new HashMap<Integer, Integer>();
         DAGDependValueMap = new HashMap<String, Double>();
-
         peNumber = CommonParametersUtil.processorNumber;
         currentTime = 0;
         timeWindow = proceesorEndTime / peNumber;
+        //System.out.println("当前timeWindow："+timeWindow);
         pushFlag = new int[peNumber];
         dagResultMap = new int[1000][dagNumMax];
 
@@ -214,7 +214,10 @@ public class Semple {
     private static void createDeadline_XML(int dead_line) throws Throwable {
         //处理器的计算能力
         int maxability = 1;
-        int max = 10000;
+        /**
+                           * 这里是那个时间窗口不能设置太大的bug所在地
+         */
+        int max = Integer.MAX_VALUE;
         for (int k = TASK_queue_personal.size() - 1; k >= 0; k--) {
 
             ArrayList<Integer> suc = new ArrayList<Integer>();
@@ -316,8 +319,6 @@ public class Semple {
         do {
 
             //最早结束时间
-
-
             int[] finish = new int[readylist.size()];
 
             int message[][] = new int[readylist.size()][6];
@@ -632,13 +633,13 @@ public class Semple {
 
     /**
      * @param dagmap
-     * @param dagtemp
+     * @param task
      * @throws
      * @Title: findFirstTaskSlot
      * @Description: 找到本作业第一个任务所在的空隙
      * @return:
      */
-    public static boolean findFirstTaskSlot(DAG dagmap, Task dagtemp) throws Exception {
+    public static boolean findFirstTaskSlot(DAG dagmap, Task task) throws Exception {
         // perfinish is the earliest finish time minus task'ts time, the earliest start time
 
         boolean findsuc = false;
@@ -650,39 +651,30 @@ public class Semple {
 
         for (int i = 0; i < peNumber; i++) {
             startinpe[i] = -1;
-            ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++)
-                slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
-
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
+            ArrayList<Slot> slotlistinpe = SlotListInPes.get(i);
+          
+            for (int j = 0; j < slotlistinpe.size(); j++) {
                 int slst = slotlistinpe.get(j).getslotstarttime();
                 int slfi = slotlistinpe.get(j).getslotfinishtime();
-
-                if (dagtemp.getarrive() <= slst) {// predone<=slst
-                    if ((slst + dagtemp.getts()) <= slfi && // s1+c<f1
-                            (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
+              
+                if (task.getarrive() <= slst) {// predone<=slst
+                    if ((slst + task.getts()) <= slfi && (slst + task.getts()) <= task.getdeadline()) {
                         startinpe[i] = slst;
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((slst + dagtemp.getts()) > slfi
-                            && (slst + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((slst + task.getts()) > slfi&& (slst + task.getts()) <= task.getdeadline()) {
                         continue;
 
                     }
                 } else {// predone>slst
-                    if ((dagtemp.getarrive() + dagtemp.getts()) <= slfi // predone+c<f1
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
-                        startinpe[i] = dagtemp.getarrive();
+                    if ((task.getarrive() + task.getts()) <= slfi && (task.getarrive() + task.getts()) <= task.getdeadline()) {
+                        startinpe[i] = task.getarrive();
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((dagtemp.getarrive() + dagtemp.getts()) > slfi
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((task.getarrive() + task.getts()) > slfi&& (task.getarrive() + task.getts()) <= task.getdeadline()) {
                         continue;
                     }
-                }
+                }   
             }
         }
 
@@ -697,10 +689,10 @@ public class Semple {
         }
 
         if (findsuc) {
-            finishmin = startmin + dagtemp.getts();
-            dagtemp.setfillbackstarttime(startmin);
-            dagtemp.setfillbackpeid(pemin);
-            dagtemp.setfillbackready(true);
+            finishmin = startmin + task.getts();
+            task.setfillbackstarttime(startmin);
+            task.setfillbackpeid(pemin);
+            task.setfillbackready(true);
 
             HashMap<Integer, Integer[]> TASKInPe = new HashMap<Integer, Integer[]>();
             TASKInPe = TASKListInPes.get(pemin);
@@ -741,24 +733,24 @@ public class Semple {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(inpe, st_fi);
-                    dagtemp.setisfillback(true);
+                    task.setisfillback(true);
                 } else {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(TASKInPe.size(), st_fi);
                 }
             } else {
                 Integer[] st_fi = new Integer[4];
                 st_fi[0] = startmin;
                 st_fi[1] = finishmin;
-                st_fi[2] = dagtemp.getdagid();
-                st_fi[3] = dagtemp.getid();
+                st_fi[2] = task.getdagid();
+                st_fi[3] = task.getid();
                 TASKInPe.put(TASKInPe.size(), st_fi);
             }
             computeSlot(dagmap.getsubmittime(), dagmap.getDAGdeadline());
@@ -789,7 +781,7 @@ public class Semple {
         //对于每一秒进行一轮调度【本轮要是有任务调度失败就认定为整个作业失败，因为现在的就绪任务都失败了，以后的肯定也执行超时的】
         do {
 
-            //轮询任务找寻当前时刻执行结束的任务。
+            //1、轮询任务找寻当前时刻执行结束的任务。
             for (Task task : DAGTaskList) {//当前时刻，有任务在此刻执行结束，设置其执行结束时间以及其完成标记
                 if ((task.getfillbackstarttime() + task.getts()) == runtime
                         && task.getfillbackready()//且这个任务是就绪的
@@ -800,11 +792,11 @@ public class Semple {
             }
 
 
-            //找寻对应的就绪队列
+            //2、找寻对应的就绪队列
             for (Task task : DAGTaskList) {
 
                 if (task.getid() == 0 && task.getfillbackready() == false) {
-                    //为第一个任务也就是头结点找寻合适的slot
+                    //2.1、为第一个任务也就是头结点找寻合适的slot
                     if (findFirstTaskSlot(dagmap, DAGTaskList.get(0))) {
                         //设置父任务的标记为true
                         task.setprefillbackready(true);
@@ -818,12 +810,13 @@ public class Semple {
                         }
                     } else {//如果头结点失败了就是整个作业失败了
                         fillbacksuc = false;
+                        System.out.println("作业"+dagmap.getDAGId()+"：在插入头结点就失败");
                         return fillbacksuc;
                     }
                 }
 
 
-                //构建就绪队列
+                //2.2、构建就绪队列
                 if (task.getarrive() <= runtime && task.getfillbackdone() == false
                         && task.getfillbackready() == false
                         && task.getfillbackpass() == false) {
@@ -1504,7 +1497,7 @@ public class Semple {
             dagmap.setDAGdeadline(deadline);
             dagmap.setsubmittime(arrivetime);
             dagmap.settasklist(TASK_queue_personal);
-            dagmap.setdepandmap(DAGDependMap_personal);
+            dagmap.setDAGDependMap(DAGDependMap_personal);
             dagmap.setdependvalue(DAGDependValueMap_personal);
 
             setDAGProperty(dagmap);
@@ -1582,13 +1575,10 @@ public class Semple {
         }
 
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("WorkFlowBasedEdition3:");
-        System.out.println("PE's use ratio is "
-                + df.format((float) effective / (peNumber * tempp)));
-        System.out.println("effective PE's use ratio is "
-                + df.format((float) effective / (tempp * peNumber)));
-        System.out.println("Task Completion Rates is "
-                + df.format((float) suc / DAGMapList.size()));
+        System.out.println("Semple:");
+        System.out.println("PE's use ratio is "+ df.format((float) effective / (peNumber * tempp)));
+        System.out.println("effective PE's use ratio is "+ df.format((float) effective / (tempp * peNumber)));
+        System.out.println("Task Completion Rates is "+ df.format((float) suc / DAGMapList.size()));
         System.out.println();
 
         rateResult[0][0] = df.format((float) effective / (peNumber * tempp));//处理器利用率

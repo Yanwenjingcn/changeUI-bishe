@@ -1647,7 +1647,7 @@ public class WorkflowBasedEdition1_bac {
             dagmap.setDAGdeadline(deadline);
             dagmap.setsubmittime(arrivetime);
             dagmap.settasklist(TASK_queue_personal);
-            dagmap.setdepandmap(DAGDependMap_personal);
+            dagmap.setDAGDependMap(DAGDependMap_personal);
             dagmap.setdependvalue(DAGDependValueMap_personal);
             DAGMapList.add(dagmap);
 

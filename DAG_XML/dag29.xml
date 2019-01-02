@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adag version="2.1" count="1" index="0" name="DAGdag29" jobCount="4" fileCount="0" childCount="3">
+  <job id="0" nammespace="DAG" name="0" version="1.0" tasklength="47">
+    <uses file="0_1" link="output" register="false" transfer="false" optional="false" type="data" size="3" />
+    <uses file="0_2" link="output" register="false" transfer="false" optional="false" type="data" size="10" />
+  </job>
+  <job id="1" nammespace="DAG" name="1" version="1.0" tasklength="22">
+    <uses file="0_1" link="input" register="false" transfer="false" optional="false" type="data" size="3" />
+    <uses file="1_3" link="output" register="false" transfer="false" optional="false" type="data" size="24" />
+  </job>
+  <job id="2" nammespace="DAG" name="2" version="1.0" tasklength="34">
+    <uses file="0_2" link="input" register="false" transfer="false" optional="false" type="data" size="10" />
+    <uses file="2_3" link="output" register="false" transfer="false" optional="false" type="data" size="7" />
+  </job>
+  <job id="3" nammespace="DAG" name="3" version="1.0" tasklength="35">
+    <uses file="1_3" link="input" register="false" transfer="false" optional="false" type="data" size="24" />
+    <uses file="2_3" link="input" register="false" transfer="false" optional="false" type="data" size="7" />
+  </job>
+  <child ref="1">
+    <parent ref="0" />
+  </child>
+  <child ref="2">
+    <parent ref="0" />
+  </child>
+  <child ref="3">
+    <parent ref="1" />
+    <parent ref="2" />
+  </child>
+</adag>
+

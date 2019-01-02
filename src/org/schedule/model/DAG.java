@@ -25,11 +25,39 @@ public class DAG {
 	public int DAGdeadline;
 	//作业的提交时间
 	public int submittime;
+	//是否被合并
+	public boolean isMerge=false;
+
+	public boolean isMerge() {
+		return isMerge;
+	}
+
+	public void setMerge(boolean isMerge) {
+		this.isMerge = isMerge;
+	}
 	
+	public boolean isSingle=false;
+	
+	public boolean isSingle() {
+		return isSingle;
+	}
+
+	public void setSingle(boolean isSingle) {
+		this.isSingle = isSingle;
+	}
+
 	public ArrayList<Task> TaskList;
 	
 	public HashMap<Integer, Integer> DAGDependMap;
 	
+	public HashMap<Integer, Integer> getDAGDependMap() {
+		return DAGDependMap;
+	}
+
+	public void setDAGDependMap(HashMap<Integer, Integer> dAGDependMap) {
+		DAGDependMap = dAGDependMap;
+	}
+
 	public HashMap<String, Double> DAGDependValueMap;
 	
 	public ArrayList<Task> orderbystarttime;
@@ -92,9 +120,10 @@ public class DAG {
 		return orderbystarttime;
 	}
 
-	public void setdepandmap(HashMap<Integer, Integer> map) {
-		this.DAGDependMap = map;
-	}
+//	public void setdepandmap(HashMap<Integer, Integer> map) {
+//		this.DAGDependMap = map;
+//	}
+	
 
 	public void setdependvalue(HashMap<String, Double> value) {
 		this.DAGDependValueMap = value;
