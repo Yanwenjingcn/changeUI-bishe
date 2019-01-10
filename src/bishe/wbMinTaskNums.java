@@ -1,46 +1,27 @@
 package bishe;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.generate.DagFlowGenerater;
 import org.generate.util.CommonParametersUtil;
-import org.schedule.model.DAG;
-import org.schedule.model.DAGDepend;
-import org.schedule.model.PE;
-import org.schedule.model.PEComputerability;
-import org.schedule.model.Slot;
-import org.schedule.model.Task;
-
 import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
+import org.schedule.model.*;
+
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.*;
+
 
 /**
  * <p>
  * 修改内容：
- * 1、就绪队列调度方式：在调度就绪队列时，选择 开始时间最早的 任务作为调度对象(如果有相同则不是随机选取而是选的最后一个)
+ * 1、就绪队列调度方式：
  * 2、deadline分层方式：从后往前推的
  * 3、添加字段：为任务添加 propertity 字段，任务调度时，同时开始的任务，换照优先级进行排序调度。
- * 4、作业顺序：gap=50，任务数少的优先
+ * 4、作业顺序：
  */
-public class CombinationOfDAG {
+public class wbMinTaskNums {
 
     // 统计数据存储
     public static String[][] rateResult = new String[1][4];
@@ -58,7 +39,7 @@ public class CombinationOfDAG {
     // 最大任务数
     public static int dagNumMax = 10000;
     // 最大时间窗时间
-    public static int timewindowmax = 9000000;
+    public static int timewindowmax = Integer.MAX_VALUE;
     public static int mesnum = 5;
     //处理器列表
     private static ArrayList<PE> PEList;
@@ -94,17 +75,10 @@ public class CombinationOfDAG {
     private static int[][] dagResultMap = null;
     
     public static int finishTaskCount=0;
-    
-    public static ArrayList<Integer> mergeDAGEndNode=new ArrayList<Integer>();
-    //合并后的总长度
-    	//static List<Integer> mergeId;//被合并的作业的原始id集合
-    	//static ArrayList<Integer> mergeDAGEndNode;//合并的大作业中每个小作业的最后一个任务的集合
-    	static ArrayList<Integer> successMergeJob=new ArrayList<Integer>();//合并的大作业中，成功调度的原始作业id
-
 
 
     //初始化
-    public CombinationOfDAG() {
+    public wbMinTaskNums() {
         readyTaskQueue = new ArrayList<Task>();
         Task_queue = new ArrayList<Task>();
         TASK_queue_personal = new ArrayList<Task>();
@@ -112,10 +86,10 @@ public class CombinationOfDAG {
         DAGMapList = new ArrayList<DAG>();
         DAGDependMap = new HashMap<Integer, Integer>();
         DAGDependValueMap = new HashMap<String, Double>();
-
         peNumber = CommonParametersUtil.processorNumber;
         currentTime = 0;
         timeWindow = proceesorEndTime / peNumber;
+        //System.out.println("当前timeWindow："+timeWindow);
         pushFlag = new int[peNumber];
         dagResultMap = new int[1000][dagNumMax];
 
@@ -131,51 +105,6 @@ public class CombinationOfDAG {
         }
     }
 
-    
-public static void main(String[] args) throws Throwable {
-    	
-    	// 初始化作业映射
-    	DagFlowGenerater dagBuilder = new DagFlowGenerater();
-        dagBuilder.initDags();
-        
-        String schedulePath = System.getProperty("user.dir") + "\\DAG_XML\\";
-        
-        CombinationOfDAG fb = new CombinationOfDAG();
-        DAGDepend dagdepend = new DAGDepend();
-        PEComputerability vcc = new PEComputerability();
-
-        //初始化处理器
-        initPE();
-
-        initDagMap(dagdepend, vcc, schedulePath);
-      
-        Date begin = new Date();
-        Long beginTime = begin.getTime();
-
-        // 设置当前时间是第一个DAG 的到达时间
-        currentTime = DAGMapList.get(0).getsubmittime();
-
-        //开始其它作业的调度
-        for (int i = 0; i < DAGMapList.size(); i++) {
-            HashMap<Integer, ArrayList> SlotListInPestemp = new HashMap<Integer, ArrayList>();
-            HashMap<Integer, HashMap> TASKListInPestemp = new HashMap<Integer, HashMap>();
-            //计算当前的空隙情况
-            computeSlot(DAGMapList.get(i).getsubmittime(), DAGMapList.get(i).getDAGdeadline());
-            //备份处理器状态
-            SlotListInPestemp = copySlot();
-            TASKListInPestemp = copyTASK();
-            //开始其它作业调度
-            scheduleOtherDAG(i, SlotListInPestemp, TASKListInPestemp);
-        }
-
-        Date end = new Date();
-     //   Long endTime = end.getTime();
-        Long diff = (end.getTime() - begin.getTime())/1000;
-        //控制台输出结果
-        outputResult(diff, "");
-        storeResultShow();
-	}
-
 
     /**
      * 一、对DAG的调度顺序进行修改
@@ -184,330 +113,60 @@ public static void main(String[] args) throws Throwable {
      * 备注：一般来说没有几个作业是在统一时间提交的。
      *
      * 当前参数： 任务数
-     * @throws IOException 
-     * @throws InvocationTargetException 
-     * @throws IllegalAccessException 
      */
-    private static void changeInitDAGMapOrder() throws IllegalAccessException, InvocationTargetException, IOException {
-    	  int gap = 200;
+    private static void changeInitDAGMapOrder() {
+        int gap = 200;
 
-          //1.按照时间间隔将任务分段
-          HashMap<Integer, ArrayList<DAG>> Gapmap = new HashMap<Integer, ArrayList<DAG>>();
+        //1.按照时间间隔将任务分段
+        HashMap<Integer, ArrayList<DAG>> map = new HashMap<Integer, ArrayList<DAG>>();
 
-          for (int i = 0; i < DAGMapList.size(); i++) {
-              DAG dagTemp = DAGMapList.get(i);
-              int submit = dagTemp.getsubmittime();
-              int gapIndex = submit / gap;
-              if (!Gapmap.containsKey(gapIndex)) {
-                  ArrayList<DAG> temp = new ArrayList<DAG>();
-                  temp.add(dagTemp);
-                  Gapmap.put(gapIndex, temp);
-              } else {
-                  Gapmap.get(gapIndex).add(dagTemp);
-              }
-          }
+        for (int i = 0; i < DAGMapList.size(); i++) {
+            DAG dagTemp = DAGMapList.get(i);
+            int submit = dagTemp.getsubmittime();
+            int gapIndex = submit / gap;
+            if (!map.containsKey(gapIndex)) {
+                ArrayList<DAG> temp = new ArrayList<DAG>();
+                temp.add(dagTemp);
+                map.put(gapIndex, temp);
+            } else {
+                map.get(gapIndex).add(dagTemp);
+            }
+        }
 
-          System.out.println("刚生成时DAGMapList的大小："+DAGMapList.size());
-          
-          //2、清空列表
-          DAGMapList.clear();
-         
+        //2、清空列表
+        DAGMapList.clear();
 
 
-          int merDagCount=0;
-          //3、将每段的的DAG进行合并
-          for (int i = 0; i < timeWindow / gap; i++) {
-              if (!Gapmap.containsKey(i)) {
-                  continue;
-              }
+        //3、将每段的的DAG进行排序
+        for (int i = 0; i < timeWindow / gap; i++) {
+            if (!map.containsKey(i)) {
+                continue;
+            }
 
-              ArrayList<DAG> tempDAGList = Gapmap.get(i);
-              //System.out.println("当前间隙:"+i*gap+"\t任务数:"+tempDAGList.size());
-              //合并这些DAG
-              mergeDAG(tempDAGList,i*gap,merDagCount);
-              merDagCount++;
-          }
-          
+            ArrayList<DAG> temp = map.get(i);
+
+            //********比较方式：
+            Collections.sort(temp, new Comparator<DAG>() {
+
+                public int compare(DAG o1, DAG o2) {
+                    if (o1.gettasknumber() < o2.gettasknumber()) {
+                        return -1;//返回1，为从大到小；返回-1为从小到大
+                    } else if (o1.gettasknumber() > o2.gettasknumber()) {
+                        return 1;
+                    }
+                    return 0;
+                }
+
+            });
+
+            //4、将修改顺序后的结果放入到DAGMapList中
+            for (DAG dag : temp) {
+                DAGMapList.add(dag);
+                // System.out.println(i+"===>作业编号："+dag.getDAGId()+"===>作业任务数："+dag.gettasknumber()+"====>作业提交时间："+dag.getsubmittime()+"====>截止时间："+dag.getDAGdeadline()+"===>优先级："+dag.getProperty());
+
+            }
+        }
     }
-    
-    private static void mergeDAG(ArrayList<DAG> mergeDAGList,int headNodeTime,int mergeDAGID) throws IllegalAccessException, InvocationTargetException, IOException {
-		//获取待合并的作业ID
-    	ArrayList<Integer> mergeIdList=new ArrayList<>();
-    	//合并后这个大的DAG中共有多少个task
-		int tailTaskId=0;
-		
-		for(DAG dag:mergeDAGList){
-				mergeIdList.add(dag.getDAGId());
-				dag.setMerge(true);
-				tailTaskId=tailTaskId+dag.gettasknumber();
-				//System.out.println("====>待合并的任务"+tempDag.getdagid());
-			
-		}	
-	
-		
-		ArrayList<Integer> mergeDAGEndNode=new ArrayList<>();
-		
-		/**
-		 * 不需要合并
-		 */
-//		if(mergeIdList.size()<=1){
-//			mergeIdList.clear();
-//			for(int i=0;i<tempDAGMapList.size();i++){
-//				DAGMap t=new DAGMap();
-//				t=tempDAGMapList.get(i);
-//				DAGMapList.add(t);
-//			}
-//			DAGMapList.get(0).setMerge(false);
-//			for(int i=0;i<DAGMapList.size();i++){
-//				DAGMap t=new DAGMap();
-//				t=DAGMapList.get(i);
-//				ArrayList<DAG> taskList=t.gettasklist();
-//				for(int k=0;k<t.gettasknumber();k++){
-//					DAG tempDag=taskList.get(k);
-//					int oriDagId=tempDag.getDAGId();
-//					int oriTaskId=tempDag.getid();
-//					tempDag.setOriDagId(oriDagId);
-//					tempDag.setOriID(oriTaskId);
-//					tempDag.setdagid(i);
-//				}
-//				t.setDAGId(i);
-//			}
-//			return ;
-//		}
-		
-		
-		DAG merDAG=new DAG();
-		//合并的dag的合并后id
-		merDAG.setDAGId(mergeDAGID);
-		//设置此dag是否是合并过
-		merDAG.setMerge(true);
-		//设置这个大的dag的提交时间，就是为分段的起始时间
-		merDAG.setsubmittime(headNodeTime);
-		
-		ComputeCostMap = new HashMap<Integer, int[]>();
-		AveComputeCostMap = new HashMap<Integer, Integer>();
-		DAGDependMap_personal = new HashMap<Integer, Integer>();
-		DAGDependValueMap_personal = new HashMap<String, Double>();
-		
-		ArrayList<Task> merDAGTaskList=new ArrayList<>();
-		
-		int currentTaskId=0;
-		//创建头结点
-		Task newHeadTask = new Task();
-	//	newHeadTask.setOriDagId(0);
-
-		newHeadTask.setdagid(mergeDAGID);
-		/**
-		 * 后续合并的添加的头结点应该是属于哪个dag的呢？
-		 */
-		newHeadTask.setOriDAGID(0);
-		newHeadTask.setOriTaskId(0);
-
-		newHeadTask.setlength(0);
-		newHeadTask.setts(0);
-		newHeadTask.setid(currentTaskId);//设置头结点的编号（应该是为0的）
-		if(newHeadTask.getid()!=0) {
-			System.out.println("error:这里应该是0");
-		}
-		newHeadTask.setdagid(0);
-		newHeadTask.setarrive(0);
-		newHeadTask.setdeadline(0);
-		//这个是个啥啊？
-		//newHeadTask.setSlotDeadLine(0);
-		ArrayList<Integer> newHeadParent=new ArrayList<>();
-		ArrayList<Integer> newHeadChild=new ArrayList<>();
-		//以上是新的头结点的设置，还没有结束
-		newHeadTask.setpre(newHeadParent);
-		merDAGTaskList.add(newHeadTask);//将头结点添加到合并的大dag中
-		
-		//创建合并dag的尾task
-		Task newTailTask = new Task();
-		newTailTask.setid(tailTaskId+1);//设置尾task 的编号
-		//System.out.println("tailTaskId="+tailTaskId);
-		
-		ArrayList<Integer> newTailPre=new ArrayList<>();
-		ArrayList<Integer> newTailChild=new ArrayList<>();
-		
-		int merDagDeadline=0;//合并dag的截止时间（为所有参与合并的dag中最长的那一个）
-		int merDAGTaskNum=0;
-		int flag=1;
-		currentTaskId++;
-	
-		
-		for(int i=0;i<mergeDAGList.size();i++) {
-			int mergeId=i;
-			
-			//得到当前需要合并的作业对象
-			DAG currentMerDag=mergeDAGList.get(mergeId);
-			//合并的dag中tasknumber增加
-			int currentDagTaskNumber=currentMerDag.gettasknumber();
-			merDAGTaskNum=merDAGTaskNum+currentDagTaskNumber;
-			//比较deadline
-			if(merDagDeadline<currentMerDag.getDAGdeadline()){
-				merDagDeadline=currentMerDag.getDAGdeadline();
-			}
-			
-			ArrayList<Task> taskList=currentMerDag.gettasklist();
-			
-			for (int j = 0; j < currentDagTaskNumber; j++) {
-				//新的task
-				Task merTask = new Task();
-				//原作业所对应的任务
-				Task oriTask = taskList.get(j);	
-				
-				Task dag_persional = new Task();
-				
-				BeanUtils.copyProperties(merTask,oriTask);
-				BeanUtils.copyProperties(dag_persional,oriTask);
-				
-				
-				merTask.setOriDAGID(oriTask.getdagid());//存储原始所属dag编号
-				merTask.setOriTaskId(oriTask.getid());//存储原始task编号
-				
-				merTask.setdagid(mergeDAGID);//设置所属的（合并）dag编号
-				merTask.setid(currentTaskId);//设置在合并dag中的task编号
-				currentTaskId++;
-				
-				dag_persional.setid(Integer.valueOf(j).intValue());
-
-				//计算在处理器上的开销，其实可以不用管，本身也用不到？
-				int x=merTask.getlength();
-				int sum = 0;
-				int[] bufferedDouble = new int[PEList.size()];
-				for (int k = 0; k < PEList.size(); k++) { // x：任务的长度
-					bufferedDouble[k] = Integer.valueOf(x/ PEList.get(k).getability());
-					sum = sum + Integer.valueOf(x / PEList.get(k).getability());
-				}
-				ComputeCostMap.put(j, bufferedDouble); // 当前任务在每个处理器上的处理开销
-				AveComputeCostMap.put(j, (sum / PEList.size())); // 当前任务在所有处理器上的平均处理开销
-				
-				//复制父节点(偏移量+原编号)
-				ArrayList<Integer> parent=oriTask.getpre();
-				ArrayList<Integer> newParent=new ArrayList<>();
-				for(Integer per:parent){
-					newParent.add(per+flag);
-				}
-				//复制子节点
-				ArrayList<Integer> newChild=new ArrayList<>();
-				ArrayList<Integer> child=oriTask.getsuc();
-				for(Integer chi:child){
-					newChild.add(chi+flag);
-				}	
-				
-				//如果当前task为原dag的头结点，那么它的父节点中应该加入我们创建的新头结点
-				if(j==0){
-					newHeadChild.add(merTask.getid());
-					newParent.add(0);//为原本开始的任务指定父节点为新加入的
-					
-					DAGDependMap_personal.put(0, merTask.getid());
-					//在传输数据中加入
-					int from=0;
-					int to=merTask.getid();
-					String key=from+" "+to;
-					DAGDependValueMap_personal.put(key, (double) 0);
-					//System.out.println("加入新的头结点的链接信息："+key);
-				}
-				//如果当前task为原dag的尾结点，那么它的子节点中应该加入我们创建的新尾结点
-				if(j==currentDagTaskNumber-1){
-					mergeDAGEndNode.add(merTask.getid());
-					newChild.add(newTailTask.getid());
-					newTailPre.add(merTask.getid());
-					DAGDependMap_personal.put(merTask.getid(), newTailTask.getid());
-					int from=merTask.getid();
-					int to=newTailTask.getid();
-				
-					String key=from+" "+to;
-					DAGDependValueMap_personal.put(key, (double) 0);
-					
-				}
-				/**改变父子列表内容
-				 * 
-				 */
-				merTask.replacePre(newParent);
-				merTask.replaceChild(newChild);
-				merDAGTaskList.add(merTask); // 当前DAG（一个）的自有任务列表
-
-			}
-
-			
-			HashMap<Integer, Integer> currentTaskDependMap = new HashMap<Integer, Integer>();
-			currentTaskDependMap=currentMerDag.getDAGDependMap();
-			HashMap<String, Double> currentTaskDependValueMap = new HashMap<String, Double>();
-			currentTaskDependValueMap=currentMerDag.getdependvalue();
-
-			//这个没有用呀，这个里面是有错误的，保存下来的只有最后一条依赖啊
-			for(Entry<Integer, Integer> map:currentTaskDependMap.entrySet()){
-				int key=map.getKey()+flag;
-				int value=map.getValue()+flag;
-				DAGDependMap_personal.put(key, value);
-			}
-			
-			//修改依赖数值
-			for(Entry<String, Double> mmap:currentTaskDependValueMap.entrySet()){
-				String[] key=mmap.getKey().split(" ");
-				int newFrom=Integer.valueOf(key[0]).intValue()+flag;
-				int newTo=Integer.valueOf(key[1]).intValue()+flag;
-				
-				String newKey=newFrom+" "+newTo;
-				Double value=mmap.getValue();
-				DAGDependValueMap_personal.put(newKey, value);
-			}
-			flag=flag+currentDagTaskNumber;
-				
-		}
-		
-		
-		newHeadTask.setsuc(newHeadChild);//此时合并dag的头task设置完毕
-
-		//设置尾节点信息
-		newTailTask.setdagid(0);
-		newTailTask.setOriTaskId(currentTaskId);
-		newTailTask.setlength(0);
-		newTailTask.setts(0);
-		newTailTask.setid(currentTaskId);
-		newTailTask.setdagid(0);
-		newTailTask.setarrive(0);
-		newTailTask.setdeadline(merDagDeadline);
-		/**
-		 * 这是个啥啊
-		 */
-		//newTailTask.setSlotDeadLine(merDagDeadline);
-		newTailTask.setpre(newTailPre);
-		newTailTask.setsuc(newTailChild);
-		merDAGTaskList.add(newTailTask);
-
-		
-		merDAG.settasklist(merDAGTaskList);
-		merDAG.settasknumber(merDAGTaskList.size());
-		merDAG.setDAGdeadline(merDagDeadline);
-		merDAG.setDAGDependMap(DAGDependMap_personal);//没用呀
-		merDAG.setdependvalue(DAGDependValueMap_personal);	
-		DAGMapList.add(merDAG);
-
-
-		/**
-		 * 
-		 * 
-		 * 
-		 */
-//		FileWriter writer = new FileWriter("G:\\initTaskList.txt", true);	
-//		for(DAG mdag:merDAGTaskList){
-//			StringBuffer spre=new StringBuffer();
-//			for(Integer pre:mdag.getpre()){
-//				spre.append(pre).append(";");
-//			}
-//			StringBuffer schi=new StringBuffer();
-//			for(Integer chi:mdag.getsuc()){
-//				schi.append(chi).append(";");
-//			}
-//			writer.write(""+mdag.getDAGId()+":"+mdag.getid()+"\t原始信息："+mdag.getOriDagId()+":"+mdag.getid()+
-//					"\t父节点有："+spre.toString()+"\t子节点有："+schi.toString()+"\n");
-//		}
-//		if (writer != null) {
-//			writer.close();
-//		}
-	}
-
 
     /**
      * 二、task就绪队列调度顺序
@@ -554,7 +213,10 @@ public static void main(String[] args) throws Throwable {
     private static void createDeadline_XML(int dead_line) throws Throwable {
         //处理器的计算能力
         int maxability = 1;
-        int max = 10000;
+        /**
+                           * 这里是那个时间窗口不能设置太大的bug所在地
+         */
+        int max = Integer.MAX_VALUE;
         for (int k = TASK_queue_personal.size() - 1; k >= 0; k--) {
 
             ArrayList<Integer> suc = new ArrayList<Integer>();
@@ -656,8 +318,6 @@ public static void main(String[] args) throws Throwable {
         do {
 
             //最早结束时间
-
-
             int[] finish = new int[readylist.size()];
 
             int message[][] = new int[readylist.size()][6];
@@ -972,13 +632,13 @@ public static void main(String[] args) throws Throwable {
 
     /**
      * @param dagmap
-     * @param dagtemp
+     * @param task
      * @throws
      * @Title: findFirstTaskSlot
      * @Description: 找到本作业第一个任务所在的空隙
      * @return:
      */
-    public static boolean findFirstTaskSlot(DAG dagmap, Task dagtemp) throws Exception {
+    public static boolean findFirstTaskSlot(DAG dagmap, Task task) throws Exception {
         // perfinish is the earliest finish time minus task'ts time, the earliest start time
 
         boolean findsuc = false;
@@ -990,39 +650,30 @@ public static void main(String[] args) throws Throwable {
 
         for (int i = 0; i < peNumber; i++) {
             startinpe[i] = -1;
-            ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++)
-                slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
-
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
+            ArrayList<Slot> slotlistinpe = SlotListInPes.get(i);
+          
+            for (int j = 0; j < slotlistinpe.size(); j++) {
                 int slst = slotlistinpe.get(j).getslotstarttime();
                 int slfi = slotlistinpe.get(j).getslotfinishtime();
-
-                if (dagtemp.getarrive() <= slst) {// predone<=slst
-                    if ((slst + dagtemp.getts()) <= slfi && // s1+c<f1
-                            (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
+              
+                if (task.getarrive() <= slst) {// predone<=slst
+                    if ((slst + task.getts()) <= slfi && (slst + task.getts()) <= task.getdeadline()) {
                         startinpe[i] = slst;
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((slst + dagtemp.getts()) > slfi
-                            && (slst + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((slst + task.getts()) > slfi&& (slst + task.getts()) <= task.getdeadline()) {
                         continue;
 
                     }
                 } else {// predone>slst
-                    if ((dagtemp.getarrive() + dagtemp.getts()) <= slfi // predone+c<f1
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
-                        startinpe[i] = dagtemp.getarrive();
+                    if ((task.getarrive() + task.getts()) <= slfi && (task.getarrive() + task.getts()) <= task.getdeadline()) {
+                        startinpe[i] = task.getarrive();
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((dagtemp.getarrive() + dagtemp.getts()) > slfi
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((task.getarrive() + task.getts()) > slfi&& (task.getarrive() + task.getts()) <= task.getdeadline()) {
                         continue;
                     }
-                }
+                }   
             }
         }
 
@@ -1037,10 +688,10 @@ public static void main(String[] args) throws Throwable {
         }
 
         if (findsuc) {
-            finishmin = startmin + dagtemp.getts();
-            dagtemp.setfillbackstarttime(startmin);
-            dagtemp.setfillbackpeid(pemin);
-            dagtemp.setfillbackready(true);
+            finishmin = startmin + task.getts();
+            task.setfillbackstarttime(startmin);
+            task.setfillbackpeid(pemin);
+            task.setfillbackready(true);
 
             HashMap<Integer, Integer[]> TASKInPe = new HashMap<Integer, Integer[]>();
             TASKInPe = TASKListInPes.get(pemin);
@@ -1081,24 +732,24 @@ public static void main(String[] args) throws Throwable {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(inpe, st_fi);
-                    dagtemp.setisfillback(true);
+                    task.setisfillback(true);
                 } else {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(TASKInPe.size(), st_fi);
                 }
             } else {
                 Integer[] st_fi = new Integer[4];
                 st_fi[0] = startmin;
                 st_fi[1] = finishmin;
-                st_fi[2] = dagtemp.getdagid();
-                st_fi[3] = dagtemp.getid();
+                st_fi[2] = task.getdagid();
+                st_fi[3] = task.getid();
                 TASKInPe.put(TASKInPe.size(), st_fi);
             }
             computeSlot(dagmap.getsubmittime(), dagmap.getDAGdeadline());
@@ -1129,7 +780,7 @@ public static void main(String[] args) throws Throwable {
         //对于每一秒进行一轮调度【本轮要是有任务调度失败就认定为整个作业失败，因为现在的就绪任务都失败了，以后的肯定也执行超时的】
         do {
 
-            //轮询任务找寻当前时刻执行结束的任务。
+            //1、轮询任务找寻当前时刻执行结束的任务。
             for (Task task : DAGTaskList) {//当前时刻，有任务在此刻执行结束，设置其执行结束时间以及其完成标记
                 if ((task.getfillbackstarttime() + task.getts()) == runtime
                         && task.getfillbackready()//且这个任务是就绪的
@@ -1140,11 +791,11 @@ public static void main(String[] args) throws Throwable {
             }
 
 
-            //找寻对应的就绪队列
+            //2、找寻对应的就绪队列
             for (Task task : DAGTaskList) {
 
                 if (task.getid() == 0 && task.getfillbackready() == false) {
-                    //为第一个任务也就是头结点找寻合适的slot
+                    //2.1、为第一个任务也就是头结点找寻合适的slot
                     if (findFirstTaskSlot(dagmap, DAGTaskList.get(0))) {
                         //设置父任务的标记为true
                         task.setprefillbackready(true);
@@ -1158,12 +809,13 @@ public static void main(String[] args) throws Throwable {
                         }
                     } else {//如果头结点失败了就是整个作业失败了
                         fillbacksuc = false;
+                        System.out.println("作业"+dagmap.getDAGId()+"：在插入头结点就失败");
                         return fillbacksuc;
                     }
                 }
 
 
-                //构建就绪队列
+                //2.2、构建就绪队列
                 if (task.getarrive() <= runtime && task.getfillbackdone() == false
                         && task.getfillbackready() == false
                         && task.getfillbackpass() == false) {
@@ -1211,6 +863,15 @@ public static void main(String[] args) throws Throwable {
         return fillbacksuc;
     }
 
+
+    /**
+     * @param i
+     * @param SlotListInPestemp：备份的slot
+     * @param TASKListInPestemp:备份的task
+     * @throws
+     * @Title: scheduleOtherDAG
+     * @Description: schedule other DAG
+     */
     public static void scheduleOtherDAG(int i, HashMap<Integer, ArrayList> SlotListInPestemp, HashMap<Integer, HashMap> TASKListInPestemp) throws Exception {
 
         int arrive = DAGMapList.get(i).getsubmittime();
@@ -1222,150 +883,30 @@ public static void main(String[] args) throws Throwable {
         //作业是否调度成功标记
         boolean flag = fillBack(currentDAG);
 
-        if (!flag) {//这个合并dag调度失败
-				ArrayList<Task> taskList=currentDAG.gettasklist();
-				//判断这个合并的作业中里面有哪些初始作业是成功的
-				for(Task dag:taskList){
-					/**
-					 * mergeDAGEndNode、successMergeJob以前只有一个合并的dag，现在是有多个了
-					 */
-					if(mergeDAGEndNode.contains(dag.getid())){//这个里面存的要想想
-						if(dag.getfillbackdone()){
-							successMergeJob.add(dag.getOriDAGID());
-						}
-					}
-				}
-				System.out.println("原任务中调度成功的作业有"+successMergeJob.size());
+        if (!flag) {
 
-				//如果原始作业中没有处理成功的，就按照以前的方式做
-				if(successMergeJob.size()<=0){
-					//恢复以前的task、slot情况
-		            restoreSlotandTASK(SlotListInPestemp, TASKListInPestemp);
-
-		            //将作业标记为未完成与过期
-		            currentDAG.setfillbackdone(false);
-		            currentDAG.setfillbackpass(true);
-
-		            //将整个作业的任务都设置为过期
-		            for (int j = 0; j < currentDAG.gettasklist().size(); j++) {
-		                Task task = (Task) currentDAG.gettasklist().get(j);
-		                task.setprefillbackdone(false);
-		                task.setfillbackpass(true);
-		                task.setready(false);
-		                task.setprefillbackdone(false);
-		                task.setprefillbackpass(true);
-		                task.setprefillbackready(false);
-		            }
-		            
-		            System.out.println("失败的dag："+currentDAG.getDAGId());
-		            return;
-				}else{
-					DAGMapList.get(0).setfillbackdone(true);
-					//System.out.println("这里会调用到吗？~~~~~~~~~~~~~~~~~~~~~");
-					DAGMapList.get(0).setfillbackpass(false);
-				}
-				
-				//得到这些成功作业的任务的现ID集合
-				ArrayList<Integer> successTaskId=new ArrayList<Integer>();			
-				for(Task suctaskask:taskList){
-					int oriDAGTaskId=suctaskask.getOriDAGID();
-					for(int p=0;p<successMergeJob.size();p++){
-						if(successMergeJob.get(p)==oriDAGTaskId){
-							successTaskId.add(suctaskask.getid());
-							suctaskask.setfillbackdone(true);
-						}else{
-							suctaskask.setfillbackdone(false);
-						}
-					}
-				}
-			//	System.out.println("此时成功的任务有:"+successTaskId.get(0)+"\t"+successTaskId.get(1));
-				//将这些成功的任务放置在处理器上
-				// 数组0代表task开始时间，1代表task结束时间，2代表dagid，3代表id
-				for(int j=0;j<peNumber;j++){
-					HashMap<Integer, Integer[]> taskHashMap=TASKListInPes.get(j);
-					HashMap<Integer, Integer[]> insteadTaskHashMap=new HashMap<>();
-					int count=0;
-					for(int k=0;k<taskHashMap.size();k++){
-						Integer[] tempInfo=taskHashMap.get(k);
-						if(successTaskId.contains(tempInfo[3])){
-							insteadTaskHashMap.put(count, tempInfo);
-							count++;
-						}
-					}
-					System.out.println("count="+count);
-					TASKListInPes.put(j, insteadTaskHashMap);
-				}
-        	
             //恢复以前的task、slot情况
-//            restoreSlotandTASK(SlotListInPestemp, TASKListInPestemp);
-//
-//            //将作业标记为未完成与过期
-//            currentDAG.setfillbackdone(false);
-//            currentDAG.setfillbackpass(true);
-//
-//            //将整个作业的任务都设置为过期
-//            for (int j = 0; j < currentDAG.gettasklist().size(); j++) {
-//                Task task = (Task) currentDAG.gettasklist().get(j);
-//                task.setprefillbackdone(false);
-//                task.setfillbackpass(true);
-//                task.setready(false);
-//                task.setprefillbackdone(false);
-//                task.setprefillbackpass(true);
-//                task.setprefillbackready(false);
-//            }
-//            
-//            System.out.println("失败的dag："+currentDAG.getDAGId());
+            restoreSlotandTASK(SlotListInPestemp, TASKListInPestemp);
+
+            //将作业标记为未完成与过期
+            currentDAG.setfillbackdone(false);
+            currentDAG.setfillbackpass(true);
+
+            //将整个作业的任务都设置为过期
+            for (int j = 0; j < currentDAG.gettasklist().size(); j++) {
+                Task task = (Task) currentDAG.gettasklist().get(j);
+                task.setprefillbackdone(false);
+                task.setfillbackpass(true);
+                task.setready(false);
+                task.setprefillbackdone(false);
+                task.setprefillbackpass(true);
+                task.setprefillbackready(false);
+            }
         } else {
             currentDAG.setfillbackdone(true);
-            System.out.println(currentDAG.getDAGId());
         }
     }
-//    /**
-//     * @param i
-//     * @param SlotListInPestemp：备份的slot
-//     * @param TASKListInPestemp:备份的task
-//     * @throws
-//     * @Title: scheduleOtherDAG
-//     * @Description: schedule other DAG
-//     */
-//    public static void scheduleOtherDAG(int i, HashMap<Integer, ArrayList> SlotListInPestemp, HashMap<Integer, HashMap> TASKListInPestemp) throws Exception {
-//
-//        int arrive = DAGMapList.get(i).getsubmittime();
-//        if (arrive > currentTime)
-//            currentTime = arrive;
-//
-//        DAG currentDAG = DAGMapList.get(i);
-//        //  System.out.println("当前调度的是："+currentDAG.getDAGId()+" "+currentDAG.gettasknumber());
-//        //作业是否调度成功标记
-//        boolean flag = fillBack(currentDAG);
-//
-//        if (!flag) {
-//
-//            //恢复以前的task、slot情况
-//            restoreSlotandTASK(SlotListInPestemp, TASKListInPestemp);
-//
-//            //将作业标记为未完成与过期
-//            currentDAG.setfillbackdone(false);
-//            currentDAG.setfillbackpass(true);
-//
-//            //将整个作业的任务都设置为过期
-//            for (int j = 0; j < currentDAG.gettasklist().size(); j++) {
-//                Task task = (Task) currentDAG.gettasklist().get(j);
-//                task.setprefillbackdone(false);
-//                task.setfillbackpass(true);
-//                task.setready(false);
-//                task.setprefillbackdone(false);
-//                task.setprefillbackpass(true);
-//                task.setprefillbackready(false);
-//            }
-//            
-//            System.out.println("失败的dag："+currentDAG.getDAGId());
-//        } else {
-//            currentDAG.setfillbackdone(true);
-//            System.out.println(currentDAG.getDAGId());
-//        }
-//    }
-//
+
 
     /**
      * @param submit
@@ -1913,7 +1454,7 @@ public static void main(String[] args) throws Throwable {
         File file = new File(pathXML);
         String[] fileNames = file.list();
         //得到dag的数量
-        int num = fileNames.length - 1;
+        int num = fileNames.length - 2;
 
         BufferedReader bd = new BufferedReader(new FileReader(pathXML + "Deadline.txt"));
         String buffered;
@@ -1935,6 +1476,7 @@ public static void main(String[] args) throws Throwable {
             int tasknum = buff[1];
             taskTotal = taskTotal + tasknum;
             int arrivetime = buff[2];
+
             pre_exist = initDAG_createDAGdepend_XML(i, pre_exist, tasknum, arrivetime, pathXML);
 
             vcc.setComputeCostMap(ComputeCostMap);
@@ -2032,13 +1574,10 @@ public static void main(String[] args) throws Throwable {
         }
 
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("WorkFlowBasedEdition3:");
-        System.out.println("PE's use ratio is "
-                + df.format((float) effective / (peNumber * tempp)));
-        System.out.println("effective PE's use ratio is "
-                + df.format((float) effective / (tempp * peNumber)));
-        System.out.println("Task Completion Rates is "
-                + df.format((float) suc / DAGMapList.size()));
+        System.out.println("wbMinTaskNum:");
+        System.out.println("PE's use ratio is "+ df.format((float) effective / (peNumber * tempp)));
+        System.out.println("effective PE's use ratio is "+ df.format((float) effective / (tempp * peNumber)));
+        System.out.println("Task Completion Rates is "+ df.format((float) suc / DAGMapList.size()));
         System.out.println();
 
         rateResult[0][0] = df.format((float) effective / (peNumber * tempp));//处理器利用率
@@ -2046,25 +1585,29 @@ public static void main(String[] args) throws Throwable {
         rateResult[0][2] = df.format((float) suc / DAGMapList.size());//任务完成利率
         rateResult[0][3] = df.format(diff);
 
-        printInfile();
+        printInfile(resultPath);
 
     }
 
-    protected static void printInfile() throws IOException {
-        String path = "D:\\semple.txt";
-        BufferedWriter out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path, true)));
-            out.write(rateResult[0][0] + "\t" + rateResult[0][1]+"\t" + rateResult[0][2] +"\t"+rateResult[0][3]+"\r\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    static String wbResult = "wbMinTaskNumFirst.txt";
+    protected static void printInfile(String resultPath) throws IOException {
+        FileWriter FillBackWriter = null;
+		try {
+			// 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+			String fillBackFileName = resultPath+ wbResult;
+			FillBackWriter = new FileWriter(fillBackFileName, true);
+			FillBackWriter.write(rateResult[0][0] + "\t" + rateResult[0][1]+ "\t" + rateResult[0][2] +  "\t" +rateResult[0][3] +"\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (FillBackWriter != null) {
+					FillBackWriter.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
 
@@ -2260,7 +1803,7 @@ public static void main(String[] args) throws Throwable {
     public void runMakespan(String pathXML, String resultPath) throws Throwable {
 
         // 初始化作业映射
-        CombinationOfDAG fb = new CombinationOfDAG();
+        wbMinTaskNums fb = new wbMinTaskNums();
         DAGDepend dagdepend = new DAGDepend();
         PEComputerability vcc = new PEComputerability();
 
@@ -2272,7 +1815,7 @@ public static void main(String[] args) throws Throwable {
         Date begin = new Date();
         Long beginTime = begin.getTime();
 
-        // 设置当前时间是第一个DAG 的到达时间
+        // set current time
         currentTime = DAGMapList.get(0).getsubmittime();
 
         //开始其它作业的调度
@@ -2290,7 +1833,7 @@ public static void main(String[] args) throws Throwable {
 
         Date end = new Date();
      //   Long endTime = end.getTime();
-        Long diff = (end.getTime() - begin.getTime())/1000;
+        Long diff = (end.getTime() - begin.getTime());
         //控制台输出结果
         outputResult(diff, resultPath);
         storeResultShow();

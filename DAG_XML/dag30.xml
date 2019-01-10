@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<adag version="2.1" count="1" index="0" name="DAGdag30" jobCount="2" fileCount="0" childCount="1">
-  <job id="0" nammespace="DAG" name="0" version="1.0" tasklength="45">
-    <uses file="0_1" link="output" register="false" transfer="false" optional="false" type="data" size="10" />
+<adag version="2.1" count="1" index="0" name="DAGdag30" jobCount="5" fileCount="0" childCount="4">
+  <job id="0" nammespace="DAG" name="0" version="1.0" tasklength="34">
+    <uses file="0_1" link="output" register="false" transfer="false" optional="false" type="data" size="1" />
+    <uses file="0_2" link="output" register="false" transfer="false" optional="false" type="data" size="8" />
+    <uses file="0_3" link="output" register="false" transfer="false" optional="false" type="data" size="43" />
   </job>
-  <job id="1" nammespace="DAG" name="1" version="1.0" tasklength="20">
-    <uses file="0_1" link="input" register="false" transfer="false" optional="false" type="data" size="10" />
+  <job id="1" nammespace="DAG" name="1" version="1.0" tasklength="22">
+    <uses file="0_1" link="input" register="false" transfer="false" optional="false" type="data" size="1" />
+    <uses file="1_4" link="output" register="false" transfer="false" optional="false" type="data" size="19" />
+  </job>
+  <job id="2" nammespace="DAG" name="2" version="1.0" tasklength="51">
+    <uses file="0_2" link="input" register="false" transfer="false" optional="false" type="data" size="8" />
+    <uses file="2_4" link="output" register="false" transfer="false" optional="false" type="data" size="6" />
+  </job>
+  <job id="3" nammespace="DAG" name="3" version="1.0" tasklength="38">
+    <uses file="0_3" link="input" register="false" transfer="false" optional="false" type="data" size="43" />
+    <uses file="3_4" link="output" register="false" transfer="false" optional="false" type="data" size="25" />
+  </job>
+  <job id="4" nammespace="DAG" name="4" version="1.0" tasklength="22">
+    <uses file="1_4" link="input" register="false" transfer="false" optional="false" type="data" size="19" />
+    <uses file="2_4" link="input" register="false" transfer="false" optional="false" type="data" size="6" />
+    <uses file="3_4" link="input" register="false" transfer="false" optional="false" type="data" size="25" />
   </job>
   <child ref="1">
     <parent ref="0" />
+  </child>
+  <child ref="2">
+    <parent ref="0" />
+  </child>
+  <child ref="3">
+    <parent ref="0" />
+  </child>
+  <child ref="4">
+    <parent ref="1" />
+    <parent ref="2" />
+    <parent ref="3" />
   </child>
 </adag>
 

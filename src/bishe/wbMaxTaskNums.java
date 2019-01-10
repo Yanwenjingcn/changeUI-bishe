@@ -1,33 +1,17 @@
 package bishe;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.generate.util.CommonParametersUtil;
 import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.schedule.model.DAG;
-import org.schedule.model.DAGDepend;
-import org.schedule.model.PE;
-import org.schedule.model.PEComputerability;
-import org.schedule.model.Slot;
-import org.schedule.model.Task;
+import org.schedule.model.*;
+
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.*;
+
 
 /**
  * <p>
@@ -37,7 +21,7 @@ import org.schedule.model.Task;
  * 3、添加字段：为任务添加 propertity 字段，任务调度时，同时开始的任务，换照优先级进行排序调度。
  * 4、作业顺序：
  */
-public class DCMG {
+public class wbMaxTaskNums {
 
     // 统计数据存储
     public static String[][] rateResult = new String[1][4];
@@ -94,7 +78,7 @@ public class DCMG {
 
 
     //初始化
-    public DCMG() {
+    public wbMaxTaskNums() {
         readyTaskQueue = new ArrayList<Task>();
         Task_queue = new ArrayList<Task>();
         TASK_queue_personal = new ArrayList<Task>();
@@ -131,9 +115,58 @@ public class DCMG {
      * 当前参数： 任务数
      */
     private static void changeInitDAGMapOrder() {
-        
-    }
+        int gap = 200;
 
+        //1.按照时间间隔将任务分段
+        HashMap<Integer, ArrayList<DAG>> map = new HashMap<Integer, ArrayList<DAG>>();
+
+        for (int i = 0; i < DAGMapList.size(); i++) {
+            DAG dagTemp = DAGMapList.get(i);
+            int submit = dagTemp.getsubmittime();
+            int gapIndex = submit / gap;
+            if (!map.containsKey(gapIndex)) {
+                ArrayList<DAG> temp = new ArrayList<DAG>();
+                temp.add(dagTemp);
+                map.put(gapIndex, temp);
+            } else {
+                map.get(gapIndex).add(dagTemp);
+            }
+        }
+
+        //2、清空列表
+        DAGMapList.clear();
+
+
+        //3、将每段的的DAG进行排序
+        for (int i = 0; i < timeWindow / gap; i++) {
+            if (!map.containsKey(i)) {
+                continue;
+            }
+
+            ArrayList<DAG> temp = map.get(i);
+
+            //********比较方式：
+            Collections.sort(temp, new Comparator<DAG>() {
+
+                public int compare(DAG o1, DAG o2) {
+                    if (o1.gettasknumber() < o2.gettasknumber()) {
+                        return 1;//返回1，为从大到小；返回-1为从小到大
+                    } else if (o1.gettasknumber() > o2.gettasknumber()) {
+                        return -1;
+                    }
+                    return 0;
+                }
+
+            });
+
+            //4、将修改顺序后的结果放入到DAGMapList中
+            for (DAG dag : temp) {
+                DAGMapList.add(dag);
+                // System.out.println(i+"===>作业编号："+dag.getDAGId()+"===>作业任务数："+dag.gettasknumber()+"====>作业提交时间："+dag.getsubmittime()+"====>截止时间："+dag.getDAGdeadline()+"===>优先级："+dag.getProperty());
+
+            }
+        }
+    }
 
     /**
      * 二、task就绪队列调度顺序
@@ -152,7 +185,17 @@ public class DCMG {
      * @return 在就绪队列中的下标
      */
     private static int chooseReadyListIndex(int[][] message, ArrayList<Task> readylist) {
-        return 0;
+        int readyListIndex = -1;
+
+        int earliestStart_Time = timewindowmax;
+
+        for (int i = 0; i < readylist.size(); i++) {
+            if (earliestStart_Time > message[i][1]) {
+                earliestStart_Time = message[i][1];
+                readyListIndex = i;
+            }
+        }
+        return readyListIndex;
     }
 
 
@@ -171,7 +214,7 @@ public class DCMG {
         //处理器的计算能力
         int maxability = 1;
         /**
-         * 这里是那个时间窗口不能设置太大的bug所在地
+                           * 这里是那个时间窗口不能设置太大的bug所在地
          */
         int max = Integer.MAX_VALUE;
         for (int k = TASK_queue_personal.size() - 1; k >= 0; k--) {
@@ -210,7 +253,15 @@ public class DCMG {
      * @param dagmap
      */
     private static void setDAGProperty(DAG dagmap) {
-        
+        //创建优先级
+        double random = Math.random();
+        if(random<0.2){
+            dagmap.setProperty(1);
+        }else if(random<0.8){
+            dagmap.setProperty(2);
+        }else {
+            dagmap.setProperty(3);
+        }
     }
 
 
@@ -311,6 +362,7 @@ public class DCMG {
 
 
             for (int i = 0; i < readylist.size(); i++) {
+
                 //如果有任务调度失败
                 if (message[i][0] == 0) {
                     findsuc = false;
@@ -449,320 +501,134 @@ public class DCMG {
      * @Description: find appropriate block
      * @return:
      */
-//    public static int[] findSlot(DAG dagmap, Task dagtemp) {
-//        int message[] = new int[6];
-//
-//        boolean findsuc = false;
-//        
-//        int finishmin = timewindowmax;
-//        int pemin = -1;
-//        int[] startinpe = new int[peNumber];
-//        int[] slotid = new int[peNumber];
-//        int[] isneedslide = new int[peNumber]; // 0 means don't need 1 means need slide
-//        int[] slidelength = new int[peNumber];
-//        int[] gapLenth=new int[peNumber];//在该处理器上锁插入的空隙位置留出来的gap
-//
-//        for (int k = 0; k < peNumber; k++) {
-//            pushFlag[k] = 0;
-//        }
-//
-//        Map<String, Double> DAGTaskDependValue = new HashMap<String, Double>();
-//        DAGTaskDependValue = dagmap.getdependvalue();
-//
-//        ArrayList<Task> pre_queue = new ArrayList<Task>();
-//        ArrayList<Integer> pre = new ArrayList<Integer>();
-//        pre = dagtemp.getpre();
-//        if (pre.size() >= 0) {
-//            for (int j = 0; j < pre.size(); j++) {
-//                Task buf = getTaskByDagIdAndTaskId(dagtemp.getdagid(), pre.get(j));
-//                pre_queue.add(buf);
-//            }
-//        }
-//        
-//        int[] predone=new int[peNumber];
-//
-//        for (int i = 0; i < peNumber; i++) {
-//        	
-//
-//        	//1、获得在当前处理器上最早可以开始的时间
-//            predone[i] = 0;
-//            if (pre_queue.size() == 1) {//如果只有一个父任务
-//                if (pre_queue.get(0).getfillbackpeid() == i) {
-//                	predone[i] = pre_queue.get(0).getfillbackfinishtime();
-//                } else {
-//                    int value = (int) (double) DAGTaskDependValue.get(String.valueOf(pre_queue.get(0).getid())+ " "+ String.valueOf(dagtemp.getid()));
-//                    predone[i] = pre_queue.get(0).getfillbackfinishtime() + value;
-//                }
-//            } else if (pre_queue.size() >= 1) {//如果有多个父任务
-//                for (int j = 0; j < pre_queue.size(); j++) {
-//                    if (pre_queue.get(j).getfillbackpeid() == i) {
-//                        if (predone[i] < pre_queue.get(j).getfillbackfinishtime()) {
-//                        	predone[i] = pre_queue.get(j).getfillbackfinishtime();
-//                        }
-//                    } else {
-//                        int valu = (int) (double) DAGTaskDependValue.get(String.valueOf(pre_queue.get(j).getid())+ " "+ String.valueOf(dagtemp.getid()));
-//                        int value = pre_queue.get(j).getfillbackfinishtime()+ valu;
-//                        if (predone[i] < value)
-//                        	predone[i] = value;
-//                    }
-//                }
-//            }
-//
-//            startinpe[i] = -1;
-//            gapLenth[i]=-1;
-//            ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
-//
-//            for (int j = 0; j < SlotListInPes.get(i).size(); j++)
-//                slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
-//
-//            //2、找到在该处理器上可以插入的合适的空隙（也就是最早可以插入的位置）
-//            for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
-//                int slst = slotlistinpe.get(j).getslotstarttime();
-//                int slfi = slotlistinpe.get(j).getslotfinishtime();
-//                if (predone[i] <= slst) {
-//                    if ((slst + dagtemp.getts()) <= slfi&& (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
-//                        startinpe[i] = slst;
-//                        slotid[i] = slotlistinpe.get(j).getslotId();
-//                        isneedslide[i] = 0;
-//                        gapLenth[i]=0; //此时空隙长度为0
-//                        break;
-//                    } else if ((slst + dagtemp.getts()) > slfi&& (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
-//                        continue;
-//                    }
-//                } else if (predone[i] > slst && predone[i] < slfi) {
-//                    if ((predone[i] + dagtemp.getts()) <= slfi&& (predone[i] + dagtemp.getts()) <= dagtemp.getdeadline()) {
-//                        startinpe[i] = predone[i];
-//                        slotid[i] = slotlistinpe.get(j).getslotId();
-//                        isneedslide[i] = 0;
-//                        gapLenth[i]=predone[i]-slst;//此时空隙长度为差值
-//                        break;
-//                    } else if ((predone[i] + dagtemp.getts()) > slfi&& (predone[i] + dagtemp.getts()) <= dagtemp.getdeadline()) {
-//                        continue;
-//                    }
-//                }
-//            }
-//        }
-//
-//        //3、挑选合适的处理器，此处为gap最小的处理器
-//        int gapMin = timewindowmax;
-//       // int startmin = timewindowmax;
-//        for (int i = 0; i < peNumber; i++) {
-//            if (startinpe[i] != -1) {
-//                findsuc = true;
-//                if (gapLenth[i]!=-1&&gapLenth[i] < gapMin) {
-//                	gapMin = gapLenth[i];
-//                    pemin = i;
-//                }
-//            }else {
-//            	
-//           	}
-//        }
-//        // 0 is if success 1 means success 0 means fail, 1 is earliest start time, 2 is peid, 3 is slotid
-//        if (findsuc) {
-//            message[0] = 1;//是否插入成功
-//            message[1] = startinpe[pemin];//开始时间
-//            message[2] = pemin;//所在处理器
-//            message[3] = slotid[pemin];//空闲块编号
-//            message[4] = isneedslide[pemin];//是否需要后推（目前是无用参数）
-//            if (isneedslide[pemin] == 1)
-//                message[5] = slidelength[pemin];
-//            else
-//                message[5] = -1;
-//        } else {
-//        	for(int i=0;i<peNumber;i++) {
-//        		ArrayList<Slot> slotlistinpe=SlotListInPes.get(i);
-//        		
-//            	for(int j = 0; j < SlotListInPes.get(i).size(); j++) {
-//            		int slst = slotlistinpe.get(j).getslotstarttime();
-//                    int slfi = slotlistinpe.get(j).getslotfinishtime();
-//            		 System.out.println(predone[i]+"\t空隙个数为："+slotlistinpe.size()+"\t空隙"+j+"的时间为："+slst+"--"+slfi+"\t在处理器"+i+"的开始时间为："+startinpe[i]+"\t作业"+dagtemp.getdagid()+"的任务"+dagtemp.getid()+"执行时长为："+dagtemp.getts()+"\tdeadline="+dagtemp.getdeadline());
-//            	}
-//        	}
-//        	
-//            message[0] = 0;
-//        }
-//
-//        return message;
-//    }
-    
-    
-	public static int[] findSlot(DAG dagmap, Task dagtemp) {
-		int message[] = new int[6];
+    public static int[] findSlot(DAG dagmap, Task dagtemp) {
+        int message[] = new int[6];
 
-		boolean findsuc = false;
-		int startmin = timewindowmax;
-		int finishmin = timewindowmax;
-		int diffmin = timewindowmax;
-		int pemin = -1;
-		int slide;
-		int[] startinpe = new int[peNumber]; // 在处理器i上开始执行的时间
-		int[] slotid = new int[peNumber]; // 空闲块在处理器i上的编号
-		int[] isneedslide = new int[peNumber]; // 0 means don't need 1 means
-												// need slide
-		int[] slidelength = new int[peNumber];// 在处理器i上需要滑动的长度
-		int[] diff = new int[peNumber];
+        boolean findsuc = false;
+        int startmin = timewindowmax;
+        int finishmin = timewindowmax;
+        int pemin = -1;
+        int[] startinpe = new int[peNumber];
+        int[] slotid = new int[peNumber];
+        int[] isneedslide = new int[peNumber]; // 0 means don't need 1 means need slide
+        int[] slidelength = new int[peNumber];
 
-		/**
-		 * 归0
-		 */
-		for (int k = 0; k < peNumber; k++) {
-			pushFlag[k] = 0;
-		}
+        for (int k = 0; k < peNumber; k++) {
+            pushFlag[k] = 0;
+        }
 
-		Map<String, Double> DAGTaskDependValue = new LinkedHashMap<String, Double>();
-		DAGTaskDependValue = dagmap.getdependvalue();
+        Map<String, Double> DAGTaskDependValue = new HashMap<String, Double>();
+        DAGTaskDependValue = dagmap.getdependvalue();
 
-		// 获取父任务集合
-		ArrayList<Task> pre_queue = new ArrayList<Task>();
-		ArrayList<Integer> pre = new ArrayList<Integer>();
-		pre = dagtemp.getpre();
-		if (pre.size() > 0) {
-			for (int j = 0; j < pre.size(); j++) {
-				Task buf = new Task();
-				//buf = getDAGById(dagtemp.getdagid(), pre.get(j));
-				buf=getTaskByDagIdAndTaskId(dagtemp.getdagid(), pre.get(j));
-				if (!buf.fillbackdone && !buf.fillbackready) {
-					message[0] = 0;
-					System.out.println("他的父节点没能完成");
-					return message;
-				}
-				pre_queue.add(buf);
-			}
-		}
+        ArrayList<Task> pre_queue = new ArrayList<Task>();
+        ArrayList<Integer> pre = new ArrayList<Integer>();
+        pre = dagtemp.getpre();
+        if (pre.size() >= 0) {
+            for (int j = 0; j < pre.size(); j++) {
+                Task buf = getTaskByDagIdAndTaskId(dagtemp.getdagid(), pre.get(j));
+                pre_queue.add(buf);
+            }
+        }
 
-		
-	//	int faDone = 0;
-		// 获取本任务的最早开始时间
-		for (int i = 0; i < peNumber; i++) {
-			int predone = 0;// 在当前处理器上当前任务最早开始执行时间
-			if (pre_queue.size() == 1) {// 如果该任务只有一个父任务
-				if (pre_queue.get(0).getfillbackpeid() == i) {// 与父任务在同一个处理器上
-					predone = pre_queue.get(0).getfillbackfinishtime();
-				} else {// 与父任务不在同一个处理器上
-					int value = (int) (double) DAGTaskDependValue.get(String.valueOf(pre_queue.get(0).getid())+ " "+ String.valueOf(dagtemp.getid()));
-					predone = pre_queue.get(0).getfillbackfinishtime() + value;
-				}
-			} else if (pre_queue.size() >= 1) {// 有多个父任务
-				for (int j = 0; j < pre_queue.size(); j++) {
-					if (pre_queue.get(j).getfillbackpeid() == i) {// 与父任务在同一个处理器上
-						if (predone < pre_queue.get(j).getfillbackfinishtime()) {
-							predone = pre_queue.get(j).getfillbackfinishtime();
-						}
-					} else {// 与父任务不在同一个处理器上，开始时间为：父任务结束时间以及资源传输时间
-						int valu = (int) (double) DAGTaskDependValue.get(String.valueOf(pre_queue.get(j).getid())+ " "+ String.valueOf(dagtemp.getid()));
-						int value = pre_queue.get(j).getfillbackfinishtime()+ valu;
-						if (predone < value)
-							predone = value;
-					}
-				}
-			}
+        for (int i = 0; i < peNumber; i++) {
 
-			
-			startinpe[i] = -1;
-			diff[i] = -1;
+            int predone = 0;
 
-			ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
-			// i:处理器编号
-			for (int j = 0; j < SlotListInPes.get(i).size(); j++)
-				slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
+            if (pre_queue.size() == 1) {
+                if (pre_queue.get(0).getfillbackpeid() == i) {
+                    predone = pre_queue.get(0).getfillbackfinishtime();
+                } else {
+                    int value = (int) (double) DAGTaskDependValue.get(String
+                            .valueOf(pre_queue.get(0).getid())
+                            + " "
+                            + String.valueOf(dagtemp.getid()));
+                    predone = pre_queue.get(0).getfillbackfinishtime() + value;
+                }
+            } else if (pre_queue.size() >= 1) {
+                for (int j = 0; j < pre_queue.size(); j++) {
+                    if (pre_queue.get(j).getfillbackpeid() == i) {
+                        if (predone < pre_queue.get(j).getfillbackfinishtime()) {
+                            predone = pre_queue.get(j).getfillbackfinishtime();
+                        }
+                    } else {
+                        int valu = (int) (double) DAGTaskDependValue.get(String
+                                .valueOf(pre_queue.get(j).getid())
+                                + " "
+                                + String.valueOf(dagtemp.getid()));
+                        int value = pre_queue.get(j).getfillbackfinishtime()
+                                + valu;
+                        if (predone < value)
+                            predone = value;
+                    }
+                }
+            }
 
-			LinkedHashMap<Integer, Integer[]> tempSlotInfo = new LinkedHashMap<>();
-			int countSlot = 0;
-			// 找寻本任务在当前处理器上插入的最早开始的空余块的相关信息
-			for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
-				int slst = slotlistinpe.get(j).getslotstarttime();
-				int slfi = slotlistinpe.get(j).getslotfinishtime();
-				int slotID = slotlistinpe.get(j).getslotId();
-				
-				if (predone < slst) {
-					if ((slst + dagtemp.getts()) <= slfi&& (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
-						Integer[] slotInfo = new Integer[4];
-						slotInfo[0] = slotID;// slotid[i]
-						slotInfo[1] = slst;// startinpe[i]
-						slotInfo[2] = 0;// diff[i]
-						slotInfo[3] = 0;// isneedslide[i]
-						tempSlotInfo.put(countSlot++, slotInfo);
-					}
-				} else if (predone >= slst && predone < slfi) {
-					if ((predone + dagtemp.getts()) <= slfi&& (predone + dagtemp.getts()) <= dagtemp.getdeadline()) {
-						Integer[] slotInfo = new Integer[4];
-						slotInfo[0] = slotID;// slotid[i]
-						slotInfo[1] = predone;// startinpe[i]
-						slotInfo[2] = predone-slst;// diff[i]
-						//slotInfo[2] = 0;// diff[i]
-						slotInfo[3] = 0;// isneedslide[i]
-						tempSlotInfo.put(countSlot++, slotInfo);
-					}
-				}
-			}
-			
-			
-			// 找到这个处理器上空隙最小的点
-			int diffTemp = timewindowmax;
-			for (Entry<Integer, Integer[]> map : tempSlotInfo.entrySet()) {
-				Integer[] slotInfo = map.getValue();
-				if (diffTemp > slotInfo[2]) {
-					diffTemp = slotInfo[2];
-					slotid[i] = slotInfo[0];
-					startinpe[i] = slotInfo[1];
-					diff[i] = slotInfo[2];
-					isneedslide[i] = slotInfo[3];
-				}
-			}
-			// System.out.println("处理器上"+i+"上有合适的空闲id："+tempSlotInfo.size()+"\t当前的任务编号为："+dagtemp.getid());
-		}
-		
-		for (int i = 0; i < peNumber; i++) {
-			if (startinpe[i] != -1) {
-				findsuc = true;
-				if (diff[i] < diffmin) {
-					diffmin = diff[i];
-				}
-			}
-		}
-		
-		// 找出相同空隙大小的处理器,// 空隙相同的情况下取执行开始时间最早的
-		ArrayList<Integer> adoptPeList = new ArrayList<>();
-		for (int i = 0; i < peNumber; i++) {
-			if (diffmin == diff[i]) {
-				adoptPeList.add(i);
-			}
-		}		
-		if (adoptPeList.size() > 1) {
-			int minStart = Integer.MAX_VALUE;
-			for (Integer peIndex : adoptPeList) {
-				if (startinpe[peIndex] < minStart) {
-					minStart = startinpe[peIndex];
-					pemin = peIndex;
-				}
-			}
-		} else if (adoptPeList.size() == 1) {
-			pemin = adoptPeList.get(0);
-		}
+            startinpe[i] = -1;
+            ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
 
-		// System.out.println("pemin="+pemin);
-		// 0 is if success 1 means success 0 means fail,
-		// 1 is earliest starttime
-		// 2 is peid
-		// 3 is slotid
-		// 4 is if need slide
-		// 5 is slide length
-		if (findsuc) {
-			message[0] = 1;
-			message[1] = startinpe[pemin];
-			message[2] = pemin;
-			message[3] = slotid[pemin];
-			message[4] = isneedslide[pemin];
-			if (isneedslide[pemin] == 1)
-				message[5] = slidelength[pemin];
-			else
-				message[5] = -1;
-		} else {
-			message[0] = 0;
-		}
+            for (int j = 0; j < SlotListInPes.get(i).size(); j++)
+                slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
 
-		return message;
-	}
+            for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
+                int slst = slotlistinpe.get(j).getslotstarttime();
+                int slfi = slotlistinpe.get(j).getslotfinishtime();
+
+                if (predone <= slst) {
+                    if ((slst + dagtemp.getts()) <= slfi
+                            && (slst + dagtemp.getts()) <= dagtemp
+                            .getdeadline()) {
+                        startinpe[i] = slst;
+                        slotid[i] = slotlistinpe.get(j).getslotId();
+                        isneedslide[i] = 0;
+                        break;
+                    } else if ((slst + dagtemp.getts()) > slfi
+                            && (slst + dagtemp.getts()) <= dagtemp
+                            .getdeadline()) {
+                        continue;
+                    }
+                } else if (predone > slst && predone < slfi) {
+                    if ((predone + dagtemp.getts()) <= slfi
+                            && (predone + dagtemp.getts()) <= dagtemp
+                            .getdeadline()) {
+                        startinpe[i] = predone;
+                        slotid[i] = slotlistinpe.get(j).getslotId();
+                        isneedslide[i] = 0;
+                        break;
+                    } else if ((predone + dagtemp.getts()) > slfi
+                            && (predone + dagtemp.getts()) <= dagtemp
+                            .getdeadline()) {
+                        continue;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < peNumber; i++) {
+            if (startinpe[i] != -1) {
+                findsuc = true;
+                if (startinpe[i] < startmin) {
+                    startmin = startinpe[i];
+                    pemin = i;
+                }
+            }
+        }
+        // 0 is if success 1 means success 0 means fail, 1 is earliest start time, 2 is peid, 3 is slotid
+        if (findsuc) {
+            message[0] = 1;
+            message[1] = startmin;
+            message[2] = pemin;
+            message[3] = slotid[pemin];
+            message[4] = isneedslide[pemin];
+            if (isneedslide[pemin] == 1)
+                message[5] = slidelength[pemin];
+            else
+                message[5] = -1;
+        } else {
+            message[0] = 0;
+        }
+
+        return message;
+    }
 
     /**
      * @param dagmap
@@ -831,6 +697,7 @@ public class DCMG {
             TASKInPe = TASKListInPes.get(pemin);
 
             if (TASKInPe.size() > 0) {
+
                 ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
                 for (int j = 0; j < SlotListInPes.get(pemin).size(); j++)
                     slotlistinpe.add((Slot) SlotListInPes.get(pemin).get(j));
@@ -933,6 +800,7 @@ public class DCMG {
                         //设置父任务的标记为true
                         task.setprefillbackready(true);
                         task.setprefillbackdone(true);
+
                         task.setfillbackpass(false);
                         //如果这个任务的执行时长为0，那么可以直接在这里标记为成功的。
                         if (task.getts() == 0) {
@@ -948,7 +816,9 @@ public class DCMG {
 
 
                 //2.2、构建就绪队列
-                if (task.getarrive() <= runtime && task.getfillbackdone() == false&& task.getfillbackready() == false&& task.getfillbackpass() == false) {
+                if (task.getarrive() <= runtime && task.getfillbackdone() == false
+                        && task.getfillbackready() == false
+                        && task.getfillbackpass() == false) {
                     //检查这个任务是否就绪
                     boolean ifready = checkReady(task, DAGTaskList, DAGTaskDependValue, runtime);
                     if (ifready) {
@@ -964,9 +834,6 @@ public class DCMG {
 
             //本轮调度
             if (readylist.size() > 0) {
-            	//改变就绪队列的排列顺序
-            	exReadyListOrder(dagmap,readylist);
-            	
                 if (!scheduleReadyTasks(dagmap, readylist)) {//本轮就绪队列调度中有任务失败，则整个作业失败
                     fillbacksuc = false;
                     return fillbacksuc;
@@ -997,38 +864,7 @@ public class DCMG {
     }
 
 
-    private static ArrayList<Task> exReadyListOrder(DAG dagmap, ArrayList<Task> readylist) {
-		// TODO Auto-generated method stub
-    	ArrayList<Task> tempReadylist = new ArrayList<Task>();
-	
-		for(int i=0;i<readylist.size();i++){
-			tempReadylist.add(readylist.get(i));
-		}
-
-		
-		readylist.clear();
-		while(tempReadylist.size()>0){
-
-			int maxTs=Integer.MIN_VALUE;
-			int maxId=-1;
-			for(int i=0;i<tempReadylist.size();i++){
-				Task tempDag=tempReadylist.get(i);
-				int currentTaskId=tempDag.getid();
-				if(maxTs<tempDag.getts()){
-					maxTs=tempDag.getts();
-					maxId=i;
-				}
-			}
-			
-			readylist.add(tempReadylist.get(maxId));
-			tempReadylist.remove(maxId);	
-		}
-
-		return readylist;
-	}
-
-
-	/**
+    /**
      * @param i
      * @param SlotListInPestemp：备份的slot
      * @param TASKListInPestemp:备份的task
@@ -1618,7 +1454,7 @@ public class DCMG {
         File file = new File(pathXML);
         String[] fileNames = file.list();
         //得到dag的数量
-        int num = fileNames.length - 1;
+        int num = fileNames.length - 21;
 
         BufferedReader bd = new BufferedReader(new FileReader(pathXML + "Deadline.txt"));
         String buffered;
@@ -1668,7 +1504,7 @@ public class DCMG {
             DAGMapList.add(dagmap);
         }
 
-        //******************************对作业的调度顺序进行修改
+        //******************************对作业的调度顺序进行修改,修改
         changeInitDAGMapOrder();
 
         dagdepend.setdagmaplist(DAGMapList);
@@ -1734,12 +1570,11 @@ public class DCMG {
 
             if (!DAGMapList.get(j).getfillbackdone()) {
                 fault++;
-                
             }
         }
 
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("DCMG:");
+        System.out.println("WB_LF:");
         System.out.println("PE's use ratio is "+ df.format((float) effective / (peNumber * tempp)));
         System.out.println("effective PE's use ratio is "+ df.format((float) effective / (tempp * peNumber)));
         System.out.println("Task Completion Rates is "+ df.format((float) suc / DAGMapList.size()));
@@ -1750,26 +1585,31 @@ public class DCMG {
         rateResult[0][2] = df.format((float) suc / DAGMapList.size());//任务完成利率
         rateResult[0][3] = df.format(diff);
 
-        printInfile();
+        printInfile(resultPath);
 
     }
 
-    protected static void printInfile() throws IOException {
-        String path = "D:\\DCMG.txt";
-        BufferedWriter out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path, true)));
-            out.write(rateResult[0][0] + "\t" + rateResult[0][1]+"\t" + rateResult[0][2] +"\t"+rateResult[0][3]+"\r\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    static String wbResult = "wbMaxTaskNumFirst.txt";
+    protected static void printInfile(String resultPath) throws IOException {
+        FileWriter FillBackWriter = null;
+		try {
+			// 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+			String fillBackFileName = resultPath+ wbResult;
+			FillBackWriter = new FileWriter(fillBackFileName, true);
+			FillBackWriter.write(rateResult[0][0] + "\t" + rateResult[0][1]+ "\t" + rateResult[0][2] +  "\t" +rateResult[0][3] +"\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (FillBackWriter != null) {
+					FillBackWriter.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
     }
+
 
 
     /**
@@ -1849,7 +1689,7 @@ public class DCMG {
      * @Description: 将本轮调度之前的处理器上空隙状态（即每个处理器上空隙情况）保存下来，以便恢复
      * @return:
      */
-    public static HashMap<Integer, ArrayList> copySlot() {
+    public static HashMap copySlot() {
         //将本轮调度之前的处理器上空隙状态（即每个处理器上空隙情况）保存下来，以便恢复
         HashMap<Integer, ArrayList> SlotListInPestemp = new HashMap<Integer, ArrayList>();
         //复制过程
@@ -1874,7 +1714,7 @@ public class DCMG {
      * @Description: 将本轮调度之前的处理器状态（即每个处理器上任务情况）保存下来，以便恢复
      * @return:
      */
-    public static HashMap<Integer, HashMap> copyTASK() {
+    public static HashMap copyTASK() {
         //将本轮调度之前的处理器状态（即每个处理器上任务情况）保存下来，以便恢复
         HashMap<Integer, HashMap> TASKListInPestemp = new HashMap<Integer, HashMap>();
         //复制过程
@@ -1964,7 +1804,7 @@ public class DCMG {
     public void runMakespan(String pathXML, String resultPath) throws Throwable {
 
         // 初始化作业映射
-        DCMG fb = new DCMG();
+        wbMaxTaskNums fb = new wbMaxTaskNums();
         DAGDepend dagdepend = new DAGDepend();
         PEComputerability vcc = new PEComputerability();
 
@@ -1994,7 +1834,7 @@ public class DCMG {
 
         Date end = new Date();
      //   Long endTime = end.getTime();
-        Long diff = (end.getTime() - begin.getTime())/1000;
+        Long diff = (end.getTime() - begin.getTime());
         //控制台输出结果
         outputResult(diff, resultPath);
         storeResultShow();

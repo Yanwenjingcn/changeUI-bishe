@@ -1,4 +1,4 @@
-package org.temp;
+package bishe;
 
 import org.generate.util.CommonParametersUtil;
 import org.jdom.Attribute;
@@ -21,7 +21,7 @@ import java.util.*;
  * 3、添加字段：为任务添加 propertity 字段，任务调度时，同时开始的任务，换照优先级进行排序调度。
  * 4、作业顺序：
  */
-public class Semple {
+public class wbMaxDeadlineFirst {
 
     // 统计数据存储
     public static String[][] rateResult = new String[1][4];
@@ -78,7 +78,7 @@ public class Semple {
 
 
     //初始化
-    public Semple() {
+    public wbMaxDeadlineFirst() {
         readyTaskQueue = new ArrayList<Task>();
         Task_queue = new ArrayList<Task>();
         TASK_queue_personal = new ArrayList<Task>();
@@ -149,10 +149,10 @@ public class Semple {
             Collections.sort(temp, new Comparator<DAG>() {
 
                 public int compare(DAG o1, DAG o2) {
-                    if (o1.gettasknumber() < o2.gettasknumber()) {
-                        return -1;//返回1，为从大到小；返回-1为从小到大
-                    } else if (o1.gettasknumber() > o2.gettasknumber()) {
-                        return 1;
+                    if (o1.getDAGdeadline() < o2.getDAGdeadline()) {
+                        return 1;//返回1，为从大到小；返回-1为从小到大
+                    } else if (o1.getDAGdeadline() > o2.getDAGdeadline()) {
+                        return -1;
                     }
                     return 0;
                 }
@@ -1454,7 +1454,7 @@ public class Semple {
         File file = new File(pathXML);
         String[] fileNames = file.list();
         //得到dag的数量
-        int num = fileNames.length - 1;
+        int num = fileNames.length - 21;
 
         BufferedReader bd = new BufferedReader(new FileReader(pathXML + "Deadline.txt"));
         String buffered;
@@ -1574,7 +1574,7 @@ public class Semple {
         }
 
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("Semple:");
+        System.out.println("WB_MaxDeadline:");
         System.out.println("PE's use ratio is "+ df.format((float) effective / (peNumber * tempp)));
         System.out.println("effective PE's use ratio is "+ df.format((float) effective / (tempp * peNumber)));
         System.out.println("Task Completion Rates is "+ df.format((float) suc / DAGMapList.size()));
@@ -1585,26 +1585,31 @@ public class Semple {
         rateResult[0][2] = df.format((float) suc / DAGMapList.size());//任务完成利率
         rateResult[0][3] = df.format(diff);
 
-        printInfile();
+        printInfile(resultPath);
 
     }
 
-    protected static void printInfile() throws IOException {
-        String path = "D:\\semple.txt";
-        BufferedWriter out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path, true)));
-            out.write(rateResult[0][0] + "\t" + rateResult[0][1]+"\t" + rateResult[0][2] +"\t"+rateResult[0][3]+"\r\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    static String wbResult = "wbMaxDeadlineFirst.txt";
+    protected static void printInfile(String resultPath) throws IOException {
+        FileWriter FillBackWriter = null;
+		try {
+			// 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+			String fillBackFileName = resultPath+ wbResult;
+			FillBackWriter = new FileWriter(fillBackFileName, true);
+			FillBackWriter.write(rateResult[0][0] + "\t" + rateResult[0][1]+ "\t" + rateResult[0][2] +  "\t" +rateResult[0][3] +"\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (FillBackWriter != null) {
+					FillBackWriter.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
     }
+
 
 
     /**
@@ -1799,7 +1804,7 @@ public class Semple {
     public void runMakespan(String pathXML, String resultPath) throws Throwable {
 
         // 初始化作业映射
-        Semple fb = new Semple();
+        wbMaxDeadlineFirst fb = new wbMaxDeadlineFirst();
         DAGDepend dagdepend = new DAGDepend();
         PEComputerability vcc = new PEComputerability();
 
@@ -1829,7 +1834,7 @@ public class Semple {
 
         Date end = new Date();
      //   Long endTime = end.getTime();
-        Long diff = (end.getTime() - begin.getTime())/1000;
+        Long diff = (end.getTime() - begin.getTime());
         //控制台输出结果
         outputResult(diff, resultPath);
         storeResultShow();

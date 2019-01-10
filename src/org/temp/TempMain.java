@@ -2,7 +2,6 @@ package org.temp;
 
 import org.generate.DagFlowGenerater;
 
-import bishe.DCMG;
 import java.io.*;
 import java.util.HashMap;
 
@@ -33,8 +32,6 @@ public class TempMain {
 //            Semple semple=new Semple();
 //            semple.runMakespan(schedulePath, "");
             
-            DCMG dcmg=new DCMG();
-            dcmg.runMakespan(schedulePath, "");
             
 
 //            //就绪队列挑选顺序：

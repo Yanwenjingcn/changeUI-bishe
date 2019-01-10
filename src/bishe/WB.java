@@ -1,4 +1,4 @@
-package org.temp;
+package bishe;
 
 import org.generate.util.CommonParametersUtil;
 import org.jdom.Attribute;
@@ -16,12 +16,12 @@ import java.util.*;
 /**
  * <p>
  * 修改内容：
- * 1、就绪队列调度方式：在调度就绪队列时，选择 开始时间最早的 任务作为调度对象(如果有相同则不是随机选取而是选的最后一个)
+ * 1、就绪队列调度方式：
  * 2、deadline分层方式：从后往前推的
  * 3、添加字段：为任务添加 propertity 字段，任务调度时，同时开始的任务，换照优先级进行排序调度。
- * 4、作业顺序：gap=50，任务数少的优先
+ * 4、作业顺序：
  */
-public class IncreaseSubmitTime {
+public class WB {
 
     // 统计数据存储
     public static String[][] rateResult = new String[1][4];
@@ -39,7 +39,7 @@ public class IncreaseSubmitTime {
     // 最大任务数
     public static int dagNumMax = 10000;
     // 最大时间窗时间
-    public static int timewindowmax = 9000000;
+    public static int timewindowmax = Integer.MAX_VALUE;
     public static int mesnum = 5;
     //处理器列表
     private static ArrayList<PE> PEList;
@@ -78,7 +78,7 @@ public class IncreaseSubmitTime {
 
 
     //初始化
-    public IncreaseSubmitTime() {
+    public WB() {
         readyTaskQueue = new ArrayList<Task>();
         Task_queue = new ArrayList<Task>();
         TASK_queue_personal = new ArrayList<Task>();
@@ -86,10 +86,10 @@ public class IncreaseSubmitTime {
         DAGMapList = new ArrayList<DAG>();
         DAGDependMap = new HashMap<Integer, Integer>();
         DAGDependValueMap = new HashMap<String, Double>();
-
         peNumber = CommonParametersUtil.processorNumber;
         currentTime = 0;
         timeWindow = proceesorEndTime / peNumber;
+        //System.out.println("当前timeWindow："+timeWindow);
         pushFlag = new int[peNumber];
         dagResultMap = new int[1000][dagNumMax];
 
@@ -106,6 +106,282 @@ public class IncreaseSubmitTime {
     }
 
 
+	private static void createDeadline(int dead_line,DAGDepend dagdepend_persion, DAG dagmap) throws Throwable {
+
+		int max;
+		//计算关键路径，求得其每层分得的均值
+		int avgDiff=getRelaxDeadline(dead_line,dagdepend_persion,dagmap);		
+		Map<String, Double> transferValueMap=dagdepend_persion.getDAGDependValueMap();
+		
+		//从后往前推
+		for (int k = TASK_queue_personal.size() - 1; k >= 0; k--) {
+			max = Integer.MAX_VALUE;
+
+			int from=TASK_queue_personal.get(k).getid();
+			ArrayList<Integer> suc = new ArrayList<Integer>();
+			suc = TASK_queue_personal.get(k).getsuc();
+
+			// 选择所有子任务的中最早的开始时间为自己的截止时间，忽略的数据的传输开销
+			if (suc.size() > 0) {
+				for (int j = 0; j < suc.size(); j++) {
+					int tem = 0;
+					Task tempChild = new Task(); // 获取这个任务的子任务
+					tempChild = getTaskByTaskId(suc.get(j));
+					int to=suc.get(j);
+					String key=from+" "+to;
+					double value=transferValueMap.get(key);
+					int childExe=tempChild.getlength()+avgDiff;
+					
+					tem=(int) (tempChild.getdeadline()-childExe-value);
+					//System.out.println("父任务："+from+"\t 子任务："+to+"的截止时间是："+tempChild.getdeadline()+"\t伸缩后："+(tempChild.getlength()+avgDiff)+"传输时间为:"+value+" \t此时的截止时间为："+tem+"\t");
+					
+					if (max > tem)
+						max = tem;
+				}		
+				TASK_queue_personal.get(k).setdeadline(max);
+
+			} else {
+				TASK_queue_personal.get(k).setdeadline(dead_line);
+			}
+		}
+	}
+	
+	
+	/**
+	 * @return 
+	 * @param dagmap 
+	 * 
+	* @Title: createDeadlineCriticalPath
+	* @Description: 通过关键路径，构建新的deadline
+	* @param dead_line
+	* @param dagdepend_persion
+	* @throws Throwable:
+	* @throws
+	 */
+	private static int getRelaxDeadline(int dead_line,DAGDepend dagdepend, DAG dagmap) throws Throwable {
+		
+		int taskSize = dagmap.gettasknumber();
+		ArrayList<Task> taskList=dagmap.gettasklist();
+		Stack<Integer> topo = new Stack<Integer>(); // 拓扑排序的顶点栈
+		int[] ve = null; //	各顶点的最早发生时间
+		int[] vl = null; // 各顶点的最迟发生时间
+
+		//求得图的拓扑排序压入栈中，并得到每个任务的最早开始时间
+		ve=topologicalSort(dagmap,ve,topo,dagdepend);
+		ArrayList<Integer> topoList=new ArrayList<>();
+		while (!topo.isEmpty()) {
+			topoList.add(topo.pop());
+		}
+		//将列表反序，从小到大排列
+		Collections.reverse(topoList);
+		
+//		StringBuffer sb=new StringBuffer();
+//		for(int k=0;k<topoList.size();k++){
+//			sb.append(topoList.get(k)).append(" ");
+//		
+//		}
+//		System.out.println("原来的拓扑结构："+sb.toString());
+		
+		
+		//得到关键路径
+		criticalPath(topoList,ve,dagmap,dagdepend);
+		
+		//得到整个DAG的最大层数
+		int levelNum=getMaxLevelNum(topoList,dagmap,dagdepend);
+		//System.out.println("原来的最大层:"+levelNum);
+
+		//求得每个任务的平均分配冗余
+		int endIndex=topoList.get(topoList.size()-1);
+		Task tempDag=taskList.get(endIndex);
+		int newDeadline=ve[topoList.get(topoList.size()-1)]+tempDag.getlength()+dagmap.getsubmittime();
+		int deadline=dagmap.getDAGdeadline();
+		
+		int deadlineDiff=deadline-newDeadline;
+		
+		int ex=(deadlineDiff)/levelNum;
+		//System.out.println(dagmap.getDAGId()+"\tnewDeadline="+newDeadline+"\tdeadline="+deadline+"\tdeadlineDiff="+deadlineDiff+"\tlevelNum="+levelNum+"\tdeadline_ex="+ex);
+		return ex;
+		
+	}
+	
+	/**
+	 * 
+	* @Title: topologicalSort
+	* @Description: 获得其拓扑排序，返回的是其各个任务的最早开始执行时间
+	* @param dagmap
+	* @param ve
+	* @param topo
+	* @param dagdepend
+	* @return:
+	* @throws
+	 */
+	private static int[] topologicalSort(DAG dagmap, int[] ve,  Stack topo, DAGDepend dagdepend) {
+			int count = 0; //输出顶点计数
+	        int[] inDegree = findInDegree(dagmap); //求各个顶点的入度
+	        int taskSize=dagmap.gettasknumber();
+	        Stack<Integer> noInputTask = new Stack<Integer>();  //零入度的 顶点栈
+	        
+	        ArrayList<Task> taskList=new ArrayList<>();
+			taskList=dagmap.gettasklist();			
+	        //找到第一个入度为0的节点
+	        for(int i = 0; i < taskSize; i++){
+	        	if(inDegree[i] == 0){
+	        		noInputTask.push(i);  //入度为0的进栈
+	        	}	
+	        }
+	        ve = new int[taskSize]; //初始化,里面存储的是各个节点的最早开始执行时间
+
+	        Map<String,Double> valueMap=dagmap.getdependvalue();
+	        while( !noInputTask.isEmpty()){
+	        	//当前的任务
+	            int currentTask = (Integer) noInputTask.pop();
+	            Task curDag=taskList.get(currentTask);
+	            topo.push(currentTask); //i号顶点入T栈并计数 
+	            
+	            for(int m=0;m<taskSize;m++){
+	            	
+	            	Task tempDag=taskList.get(m);
+	            	ArrayList<Integer> parents=tempDag.getpre();
+	            	
+	            	//当前删除的任务是这个任务的父任务
+	            	if(parents.contains(currentTask)){
+	            		inDegree[m]--;
+	            		if(inDegree[m]==0){
+	            			noInputTask.push(m);//当前的任务没有入度
+	            		}
+	            		String key=currentTask+" "+m;
+	            		Double value=valueMap.get(key)+curDag.getlength();//得加上执行时间
+	            		 if(ve[currentTask] + value> ve[m])
+	 	                    ve[m] = (int) (ve[currentTask] + value);
+	            	}
+	            }
+	        } 
+	        
+//	        for(Entry<String, Double> map:valueMap.entrySet()){
+//	        	System.out.println(""+map.getKey()+"\t距离："+map.getValue());
+//	        }
+	        return ve;
+	}
+
+	/**
+	 * 
+	* @Title: criticalPath
+	* @Description: 计算其关键路径，返回关键路径上任务个数
+	* @param topoList
+	* @param ve
+	* @param dagmap
+	* @param dagdepend
+	* @return
+	* @throws Exception:
+	* @throws
+	 */
+	public static int criticalPath(ArrayList<Integer> topoList, int[] ve, DAG dagmap, DAGDepend dagdepend) throws Exception{  
+		int taskSize=dagmap.gettasknumber();
+		ArrayList<Task> taskList=new ArrayList<>();
+		taskList=dagmap.gettasklist();
+		
+         int[] vl = new int[taskSize];
+         // 初始化各顶点事件的最迟发生时间为最后一个任务的完成时间
+         for(int i = 0; i < taskSize; i++){
+             vl[i] = ve[taskSize - 1]; 
+         }
+		Map<String, Double> valueMap = dagdepend.getDAGDependValueMap();
+         for(int k=topoList.size()-1;k>=0;k--){
+			int currentTask = (int) topoList.get(k);// 得到当前任务的编号
+
+			Task tempDag = taskList.get(currentTask);
+			ArrayList<Integer> childs = tempDag.getsuc();
+			if (childs == null)
+				continue;
+			
+			for (int p = 0; p < childs.size(); p++) {
+				int childNo=childs.get(p);
+				String key = currentTask + " " + childNo;
+				Double value = valueMap.get(key);			
+				int diff = (int) (vl[childNo] - value - tempDag.getlength());
+				if ((diff) < vl[currentTask]) {
+					vl[currentTask] = diff;
+				}
+			}
+		} 
+         
+         int criticalNum=0;
+         ArrayList<Integer> criticalNodeList=new ArrayList<>();
+         for(int i = 0; i < taskSize; i++){  
+        	 int ee= ve[i];
+        	 int el=vl[i];
+             if(ee==el){
+            	 criticalNodeList.add(i);
+            	// System.out.println("关键路径："+i);
+            	 criticalNum++;
+             }
+         }         
+         return criticalNum;
+    } 
+
+	
+	/**
+	 * @param topoList 
+	 * 
+	* @Title: getMaxLevelNum
+	* @Description: 求取DAG的最大层数
+	* @param dagmap
+	* @param dagdepend
+	* @return:
+	* @throws
+	 */
+	private static int getMaxLevelNum(ArrayList<Integer> topoList, DAG dagmap, DAGDepend dagdepend) {
+		
+		ArrayList<Task> taskList=dagmap.gettasklist();
+		int taskSize=dagmap.gettasknumber();
+		int[] level=new int[taskSize];
+		//System.out.println(taskSize);
+		Map<String, Double> valueMap = dagmap.getdependvalue();
+		
+		for(int k=topoList.size()-1;k>=0;k--){
+			int maxlevel=0;	
+			int currentTask = (int) topoList.get(k);// 得到当前任务的编号	
+			Task tempDag = taskList.get(currentTask);
+			ArrayList<Integer> childs = tempDag.getsuc();
+			
+			if (childs == null){//是最后一个节点
+				level[currentTask]=1;
+			}else{
+				for (int p = 0; p < childs.size(); p++) {
+					int childNo=childs.get(p);
+					if(maxlevel<level[childNo]){
+						maxlevel=level[childNo];
+					}
+				}
+				level[currentTask]=maxlevel+1;			
+			}
+		} 		
+		return level[0];
+	}
+	
+	
+	
+	/**
+	 * 
+	* @Title: findInDegree
+	* @Description: 获得各个任务相应的入度
+	* @param dagmap
+	* @return:
+	* @throws
+	 */
+	private static int[] findInDegree(DAG dagmap) {
+		int taskSize=dagmap.gettasknumber();
+		int[] indegree  = new int[taskSize];
+		ArrayList<Task> taskList=new ArrayList<>();
+		taskList=dagmap.gettasklist();
+        for(int i = 0; i < taskSize; i++){
+        	Task tempDag=taskList.get(i);
+        	ArrayList<Integer> parents=tempDag.getpre();
+        	indegree[i]=parents.size();	
+        }
+        return indegree; 
+	}
+	
     /**
      * 一、对DAG的调度顺序进行修改
      *
@@ -115,57 +391,7 @@ public class IncreaseSubmitTime {
      * 当前参数： 任务数
      */
     private static void changeInitDAGMapOrder() {
-        int gap = 200;
-
-        //1.按照时间间隔将任务分段
-        HashMap<Integer, ArrayList<DAG>> map = new HashMap<Integer, ArrayList<DAG>>();
-
-        for (int i = 0; i < DAGMapList.size(); i++) {
-            DAG dagTemp = DAGMapList.get(i);
-            int submit = dagTemp.getsubmittime();
-            int gapIndex = submit / gap;
-            if (!map.containsKey(gapIndex)) {
-                ArrayList<DAG> temp = new ArrayList<DAG>();
-                temp.add(dagTemp);
-                map.put(gapIndex, temp);
-            } else {
-                map.get(gapIndex).add(dagTemp);
-            }
-        }
-
-        //2、清空列表
-        DAGMapList.clear();
-
-
-        //3、将每段的的DAG进行排序
-        for (int i = 0; i < timeWindow / gap; i++) {
-            if (!map.containsKey(i)) {
-                continue;
-            }
-
-            ArrayList<DAG> temp = map.get(i);
-
-            //********比较方式：
-            Collections.sort(temp, new Comparator<DAG>() {
-
-                public int compare(DAG o1, DAG o2) {
-                    if (o1.gettasknumber() < o2.gettasknumber()) {
-                        return -1;//返回1，为从大到小；返回-1为从小到大
-                    } else if (o1.gettasknumber() > o2.gettasknumber()) {
-                        return 1;
-                    }
-                    return 0;
-                }
-
-            });
-
-            //4、将修改顺序后的结果放入到DAGMapList中
-            for (DAG dag : temp) {
-                DAGMapList.add(dag);
-                // System.out.println(i+"===>作业编号："+dag.getDAGId()+"===>作业任务数："+dag.gettasknumber()+"====>作业提交时间："+dag.getsubmittime()+"====>截止时间："+dag.getDAGdeadline()+"===>优先级："+dag.getProperty());
-
-            }
-        }
+        
     }
 
 
@@ -214,7 +440,10 @@ public class IncreaseSubmitTime {
     private static void createDeadline_XML(int dead_line) throws Throwable {
         //处理器的计算能力
         int maxability = 1;
-        int max = 10000;
+        /**
+         * 这里是那个时间窗口不能设置太大的bug所在地
+         */
+        int max = Integer.MAX_VALUE;
         for (int k = TASK_queue_personal.size() - 1; k >= 0; k--) {
 
             ArrayList<Integer> suc = new ArrayList<Integer>();
@@ -241,26 +470,6 @@ public class IncreaseSubmitTime {
         }
     }
 
-
-
-    /**
-     * 四、设置作业的优先级
-     *
-     * 设置：此轮优先级用随机数产生
-     *
-     * @param dagmap
-     */
-    private static void setDAGProperty(DAG dagmap) {
-        //创建优先级
-        double random = Math.random();
-        if(random<0.2){
-            dagmap.setProperty(1);
-        }else if(random<0.8){
-            dagmap.setProperty(2);
-        }else {
-            dagmap.setProperty(3);
-        }
-    }
 
 
     //========================================  调度主体  ================================
@@ -316,8 +525,6 @@ public class IncreaseSubmitTime {
         do {
 
             //最早结束时间
-
-
             int[] finish = new int[readylist.size()];
 
             int message[][] = new int[readylist.size()][6];
@@ -632,13 +839,13 @@ public class IncreaseSubmitTime {
 
     /**
      * @param dagmap
-     * @param dagtemp
+     * @param task
      * @throws
      * @Title: findFirstTaskSlot
      * @Description: 找到本作业第一个任务所在的空隙
      * @return:
      */
-    public static boolean findFirstTaskSlot(DAG dagmap, Task dagtemp) throws Exception {
+    public static boolean findFirstTaskSlot(DAG dagmap, Task task) throws Exception {
         // perfinish is the earliest finish time minus task'ts time, the earliest start time
 
         boolean findsuc = false;
@@ -650,39 +857,30 @@ public class IncreaseSubmitTime {
 
         for (int i = 0; i < peNumber; i++) {
             startinpe[i] = -1;
-            ArrayList<Slot> slotlistinpe = new ArrayList<Slot>();
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++)
-                slotlistinpe.add((Slot) SlotListInPes.get(i).get(j));
-
-            for (int j = 0; j < SlotListInPes.get(i).size(); j++) {
+            ArrayList<Slot> slotlistinpe = SlotListInPes.get(i);
+          
+            for (int j = 0; j < slotlistinpe.size(); j++) {
                 int slst = slotlistinpe.get(j).getslotstarttime();
                 int slfi = slotlistinpe.get(j).getslotfinishtime();
-
-                if (dagtemp.getarrive() <= slst) {// predone<=slst
-                    if ((slst + dagtemp.getts()) <= slfi && // s1+c<f1
-                            (slst + dagtemp.getts()) <= dagtemp.getdeadline()) {
+              
+                if (task.getarrive() <= slst) {// predone<=slst
+                    if ((slst + task.getts()) <= slfi && (slst + task.getts()) <= task.getdeadline()) {
                         startinpe[i] = slst;
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((slst + dagtemp.getts()) > slfi
-                            && (slst + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((slst + task.getts()) > slfi&& (slst + task.getts()) <= task.getdeadline()) {
                         continue;
 
                     }
                 } else {// predone>slst
-                    if ((dagtemp.getarrive() + dagtemp.getts()) <= slfi // predone+c<f1
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
-                        startinpe[i] = dagtemp.getarrive();
+                    if ((task.getarrive() + task.getts()) <= slfi && (task.getarrive() + task.getts()) <= task.getdeadline()) {
+                        startinpe[i] = task.getarrive();
                         slotid[i] = slotlistinpe.get(j).getslotId();
                         break;
-                    } else if ((dagtemp.getarrive() + dagtemp.getts()) > slfi
-                            && (dagtemp.getarrive() + dagtemp.getts()) <= dagtemp
-                            .getdeadline()) {
+                    } else if ((task.getarrive() + task.getts()) > slfi&& (task.getarrive() + task.getts()) <= task.getdeadline()) {
                         continue;
                     }
-                }
+                }   
             }
         }
 
@@ -697,10 +895,10 @@ public class IncreaseSubmitTime {
         }
 
         if (findsuc) {
-            finishmin = startmin + dagtemp.getts();
-            dagtemp.setfillbackstarttime(startmin);
-            dagtemp.setfillbackpeid(pemin);
-            dagtemp.setfillbackready(true);
+            finishmin = startmin + task.getts();
+            task.setfillbackstarttime(startmin);
+            task.setfillbackpeid(pemin);
+            task.setfillbackready(true);
 
             HashMap<Integer, Integer[]> TASKInPe = new HashMap<Integer, Integer[]>();
             TASKInPe = TASKListInPes.get(pemin);
@@ -741,24 +939,24 @@ public class IncreaseSubmitTime {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(inpe, st_fi);
-                    dagtemp.setisfillback(true);
+                    task.setisfillback(true);
                 } else {
                     Integer[] st_fi = new Integer[4];
                     st_fi[0] = startmin;
                     st_fi[1] = finishmin;
-                    st_fi[2] = dagtemp.getdagid();
-                    st_fi[3] = dagtemp.getid();
+                    st_fi[2] = task.getdagid();
+                    st_fi[3] = task.getid();
                     TASKInPe.put(TASKInPe.size(), st_fi);
                 }
             } else {
                 Integer[] st_fi = new Integer[4];
                 st_fi[0] = startmin;
                 st_fi[1] = finishmin;
-                st_fi[2] = dagtemp.getdagid();
-                st_fi[3] = dagtemp.getid();
+                st_fi[2] = task.getdagid();
+                st_fi[3] = task.getid();
                 TASKInPe.put(TASKInPe.size(), st_fi);
             }
             computeSlot(dagmap.getsubmittime(), dagmap.getDAGdeadline());
@@ -789,7 +987,7 @@ public class IncreaseSubmitTime {
         //对于每一秒进行一轮调度【本轮要是有任务调度失败就认定为整个作业失败，因为现在的就绪任务都失败了，以后的肯定也执行超时的】
         do {
 
-            //轮询任务找寻当前时刻执行结束的任务。
+            //1、轮询任务找寻当前时刻执行结束的任务。
             for (Task task : DAGTaskList) {//当前时刻，有任务在此刻执行结束，设置其执行结束时间以及其完成标记
                 if ((task.getfillbackstarttime() + task.getts()) == runtime
                         && task.getfillbackready()//且这个任务是就绪的
@@ -800,11 +998,11 @@ public class IncreaseSubmitTime {
             }
 
 
-            //找寻对应的就绪队列
+            //2、找寻对应的就绪队列
             for (Task task : DAGTaskList) {
 
                 if (task.getid() == 0 && task.getfillbackready() == false) {
-                    //为第一个任务也就是头结点找寻合适的slot
+                    //2.1、为第一个任务也就是头结点找寻合适的slot
                     if (findFirstTaskSlot(dagmap, DAGTaskList.get(0))) {
                         //设置父任务的标记为true
                         task.setprefillbackready(true);
@@ -818,12 +1016,13 @@ public class IncreaseSubmitTime {
                         }
                     } else {//如果头结点失败了就是整个作业失败了
                         fillbacksuc = false;
+                        System.out.println("作业"+dagmap.getDAGId()+"：在插入头结点就失败");
                         return fillbacksuc;
                     }
                 }
 
 
-                //构建就绪队列
+                //2.2、构建就绪队列
                 if (task.getarrive() <= runtime && task.getfillbackdone() == false
                         && task.getfillbackready() == false
                         && task.getfillbackpass() == false) {
@@ -1462,7 +1661,7 @@ public class IncreaseSubmitTime {
         File file = new File(pathXML);
         String[] fileNames = file.list();
         //得到dag的数量
-        int num = fileNames.length - 1;
+        int num = fileNames.length - 2;
 
         BufferedReader bd = new BufferedReader(new FileReader(pathXML + "Deadline.txt"));
         String buffered;
@@ -1470,6 +1669,8 @@ public class IncreaseSubmitTime {
         for (int i = 0; i < num; i++) {
 
             DAG dagmap = new DAG();
+            DAGDepend dagdepend_persional = new DAGDepend();
+            
             TASK_queue_personal.clear();
 
             buffered = bd.readLine();
@@ -1484,22 +1685,15 @@ public class IncreaseSubmitTime {
             int tasknum = buff[1];
             taskTotal = taskTotal + tasknum;
             int arrivetime = buff[2];
-            
-            /**
-             * 将提交时间往前加，这样检索的时候会再往前探索一时间
-             */
-            arrivetime=(int) (arrivetime-0.2*arrivetime);
-            if(arrivetime<0) {
-            	arrivetime=0;
-            }
 
             pre_exist = initDAG_createDAGdepend_XML(i, pre_exist, tasknum, arrivetime, pathXML);
 
             vcc.setComputeCostMap(ComputeCostMap);
             vcc.setAveComputeCostMap(AveComputeCostMap);
-
-            //为作业中每个任务设定其deadline
-            createDeadline_XML(deadline);
+            
+            dagdepend_persional.setDAGList(TASK_queue_personal);
+			dagdepend_persional.setDAGDependMap(DAGDependMap_personal);
+			dagdepend_persional.setDAGDependValueMap(DAGDependValueMap_personal);
 
             int number_1 = Task_queue.size();
             int number_2 = TASK_queue_personal.size();
@@ -1514,8 +1708,11 @@ public class IncreaseSubmitTime {
             dagmap.settasklist(TASK_queue_personal);
             dagmap.setDAGDependMap(DAGDependMap_personal);
             dagmap.setdependvalue(DAGDependValueMap_personal);
+            
+            //为作业中每个任务设定其deadline
+            createDeadline_XML(deadline);
+            //createDeadline(deadline, dagdepend_persional, dagmap);//依据
 
-            setDAGProperty(dagmap);
 
             DAGMapList.add(dagmap);
         }
@@ -1590,13 +1787,10 @@ public class IncreaseSubmitTime {
         }
 
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("IncreaseSubmitTime:");
-        System.out.println("PE's use ratio is "
-                + df.format((float) effective / (peNumber * tempp)));
-        System.out.println("effective PE's use ratio is "
-                + df.format((float) effective / (tempp * peNumber)));
-        System.out.println("Task Completion Rates is "
-                + df.format((float) suc / DAGMapList.size()));
+        System.out.println("WB:");
+        System.out.println("PE's use ratio is "+ df.format((float) effective / (peNumber * tempp)));
+        System.out.println("effective PE's use ratio is "+ df.format((float) effective / (tempp * peNumber)));
+        System.out.println("Task Completion Rates is "+ df.format((float) suc / DAGMapList.size()));
         System.out.println();
 
         rateResult[0][0] = df.format((float) effective / (peNumber * tempp));//处理器利用率
@@ -1604,25 +1798,29 @@ public class IncreaseSubmitTime {
         rateResult[0][2] = df.format((float) suc / DAGMapList.size());//任务完成利率
         rateResult[0][3] = df.format(diff);
 
-        printInfile();
+        printInfile(resultPath);
 
     }
 
-    protected static void printInfile() throws IOException {
-        String path = "D:\\semple.txt";
-        BufferedWriter out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path, true)));
-            out.write(rateResult[0][0] + "\t" + rateResult[0][1]+"\t" + rateResult[0][2] +"\t"+rateResult[0][3]+"\r\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    static String wbResult = "wb.txt";
+    protected static void printInfile(String resultPath) throws IOException {
+        FileWriter FillBackWriter = null;
+		try {
+			// 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+			String fillBackFileName = resultPath+ wbResult;
+			FillBackWriter = new FileWriter(fillBackFileName, true);
+			FillBackWriter.write(rateResult[0][0] + "\t" + rateResult[0][1]+ "\t" + rateResult[0][2] +  "\t" +rateResult[0][3] +"\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (FillBackWriter != null) {
+					FillBackWriter.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
 
@@ -1818,7 +2016,7 @@ public class IncreaseSubmitTime {
     public void runMakespan(String pathXML, String resultPath) throws Throwable {
 
         // 初始化作业映射
-        IncreaseSubmitTime fb = new IncreaseSubmitTime();
+        WB fb = new WB();
         DAGDepend dagdepend = new DAGDepend();
         PEComputerability vcc = new PEComputerability();
 
@@ -1848,7 +2046,7 @@ public class IncreaseSubmitTime {
 
         Date end = new Date();
      //   Long endTime = end.getTime();
-        Long diff = (end.getTime() - begin.getTime())/1000;
+        Long diff = (end.getTime() - begin.getTime());
         //控制台输出结果
         outputResult(diff, resultPath);
         storeResultShow();
