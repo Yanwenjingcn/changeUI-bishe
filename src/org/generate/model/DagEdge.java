@@ -7,7 +7,16 @@ import org.generate.DagFlowGenerater;
 * @ClassName: DagEdge
 * @Description: DAG's edge
 * @author YanWenjing
-* @date 2018-1-23 ����2:40:18
+* @date 2018-1-23 ����2:40:18
+ */
+
+/**
+ * 
+ * @ClassName: DagEdge  
+ * @Description: 任务间依赖
+ * @author Wengie Yan 
+ * @date 2019年1月18日  
+ *
  */
 public class DagEdge {
 

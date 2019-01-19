@@ -1,11 +1,13 @@
 package org.generate.model;
 
+
 /**
  * 
-* @ClassName: TaskNode
-* @Description: DAG'S task
-* @author YanWenjing
-* @date 2018-1-23 ÏÂÎç2:41:43
+ * @ClassName: TaskNode  
+ * @Description: ä»»åŠ¡æ¨¡åž‹
+ * @author Wengie Yan 
+ * @date 2019å¹´1æœˆ18æ—¥  
+ *
  */
 public class TaskNode {
 

@@ -34,7 +34,7 @@ public class XMLOutputUtil {
 	/**
 	 * 
 	 * @Title: clearDir
-	 * @Description: clear input path
+	 * @Description: 清空目标路径下的所有文件
 	 * @throws
 	 */
 	public void clearDir() {
@@ -58,6 +58,14 @@ public class XMLOutputUtil {
 	 * @Description:output dag information to xml .
 	 * @param dag:
 	 * @throws
+	 */
+	
+	/**
+	 * 
+	 * @Title: writeDataToXML  
+	 * @Description: 将结果写出为xml文件
+	 * @param dag
+	 * @return void
 	 */
 	public void writeDataToXML(RandomDag dag) {
 		try {

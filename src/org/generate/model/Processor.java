@@ -5,12 +5,14 @@ import org.generate.util.RandomParametersUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * 
-* @ClassName: Processor
-* @Description: processor
-* @author YanWenjing
-* @date 2018-1-23 ����2:40:53
+ * @ClassName: Processor  
+ * @Description: 处理器模型
+ * @author Wengie Yan 
+ * @date 2019年1月18日  
+ *
  */
 public class Processor {
 	public String processorId;

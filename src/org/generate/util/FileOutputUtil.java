@@ -15,6 +15,15 @@ import java.util.List;
  * @author YWJ56
  * @date 2017-9-9 ����3:12:
  */
+
+/**
+ * 
+ * @ClassName: FileOutputUtil  
+ * @Description: 调度结果输出
+ * @author Wengie Yan 
+ * @date 2019年1月18日  
+ *
+ */
 public class FileOutputUtil {
 	// file input path
 	private String filePath;
@@ -29,6 +38,13 @@ public class FileOutputUtil {
 	 * @Title: clearDir
 	 * @Description: clear input path
 	 * @throws
+	 */
+	
+	/**
+	 * 
+	 * @Title: clearDir  
+	 * @Description: 清空输出路径下的所有文件
+	 * @return void
 	 */
 	public void clearDir() {
 		file = new File(basePath);
@@ -45,14 +61,13 @@ public class FileOutputUtil {
 		}
 	}
 
+	
 	/**
 	 * 
-	 * @Title: writeData
-	 * @Description: output dag information to txt . format��DAG's id /t task
-	 *               number /t start time /t end time
+	 * @Title: writeDatatoTxt  
+	 * @Description: 将结果写出至txt文档
 	 * @param dag
-	 *            :
-	 * @throws
+	 * @return void
 	 */
 	public void writeDatatoTxt(RandomDag dag) {
 		try {

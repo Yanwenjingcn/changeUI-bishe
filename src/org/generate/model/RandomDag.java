@@ -11,15 +11,15 @@ import java.util.List;
 * @ClassName: RandomDag
 * @Description: generate DAG object
 * @author YanWenjing
-* @date 2018-1-23 ����2:41:20
+* @date 2018-1-23 ����2:41:20
  */
 public class RandomDag {
-	public String dagId;
-	public int dagLevel;
-	public int dagSize;
+	public String dagId;//作业编号
+	public int dagLevel;//作业层数
+	public int dagSize;//作业任务数
 	public int levelCount;
-	public int submitTime;
-	public int deadlineTime;
+	public int submitTime;//作业提交时间
+	public int deadlineTime;//作业截止时间
 	public int[] levelNodeNumber;
 	public List<TaskNode> taskList;
 	public List<DagEdge> edgeList;

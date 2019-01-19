@@ -64,8 +64,8 @@ public class Average {
 	
 	public static void deadLineTimes(String fileName) throws Throwable {
 
-		double[] deadLineTimes = {  1.2,1.5,1.8 };
-		int[] flag = {  12,15, 18 };
+		double[] deadLineTimes = {  1.1,1.2,1.3 };
+		int[] flag = {  11,12, 13 };
 
 		for (int i = 0; i < deadLineTimes.length; i++) {
 			CommonParametersUtil.setDeadLineTimes(deadLineTimes[i]);
