@@ -71,19 +71,20 @@ public class DagFlowGenerater {
 	 */
 	public void initList(List<Processor> processorList) {
 		int maxsize = 0;
-		// get Maximum task number 
+		// 得到各处理器中最大的任务数 
 		for (Processor processor : processorList) {
 			int size = processor.nodeList.size();
 			if (size > maxsize)
 				maxsize = size;
 		}
 
+		//将所有处理器上的任务添加到unCompleteTaskList
 		for (int i = 0; i < maxsize; i++)
 			for (Processor processor : processorList) {
 				if (i < processor.nodeList.size())
 					unCompleteTaskList.add(processor.nodeList.get(i));
 			}
-		//System.out.println("unCompleteTaskList="+unCompleteTaskList.size());
+		//将所有处理器上的最后一个任务添加到endNodeList
 		for (Processor processor : processorList) {
 			String endNodeId = processor.nodeList.get(processor.nodeList.size() - 1).nodeId;
 			endNodeList.add(endNodeId);
@@ -91,12 +92,14 @@ public class DagFlowGenerater {
 		
 	}
 
+
 	/**
 	 * 
-	* @Title: isEndNode 
-	* @Description:Determine whether a node is the final node 
-	* @return boolean    
-	* @throws
+	 * @Title: isEndNode  
+	 * @Description: 判断一个任务是否为某个处理器上的最后一个任务
+	 * @param taskId
+	 * @return
+	 * @return boolean
 	 */
 	public boolean isEndNode(String taskId) {
 		for (String endNodeId : endNodeList)
@@ -227,12 +230,13 @@ public class DagFlowGenerater {
 		}
 	}
 
+	
 	/**
 	 * 
-	 * @Title: generateDags
-	 * @Description: generate Dag
+	 * @Title: generateDags  
+	 * @Description: 生成一个DAG
+	 * @param number
 	 * @return void
-	 * @throws
 	 */
 	public void generateDags(int number) {
 		for (int i = 1; i <= number; i++) {
@@ -319,12 +323,12 @@ public class DagFlowGenerater {
 
 	}
 
+	
 	/**
 	 * 
-	 * @Title: writeDags
-	 * @Description: output dag result to txt and xml
+	 * @Title: dagsOutput  
+	 * @Description: 将生成的DAG结果输出至txt、xml
 	 * @return void
-	 * @throws
 	 */
 	public void dagsOutput() {
 
@@ -380,9 +384,9 @@ public class DagFlowGenerater {
 		endNodeList = new ArrayList<String>();
 		randomCreater = new RandomParametersUtil();
 
+		// 创建处理器
 		List<Processor> processorList = createProcessor(
-				CommonParametersUtil.processorNumber, CommonParametersUtil.timeWindow
-						/ CommonParametersUtil.processorNumber);
+				CommonParametersUtil.processorNumber, CommonParametersUtil.timeWindow/ CommonParametersUtil.processorNumber);
 
 		initList(processorList);
 
