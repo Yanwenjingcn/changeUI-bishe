@@ -26,7 +26,7 @@ public class GUIAddRoundTimesSettingUI extends Dialog {
 	 */
 	public GUIAddRoundTimesSettingUI(Shell parent, int style) {
 		super(parent, style);
-		setText("SWT Dialog");
+		setText("");
 	}
 
 	/**
@@ -52,21 +52,21 @@ public class GUIAddRoundTimesSettingUI extends Dialog {
 	private  void createContents() {
 		shell = new Shell(getParent(), getStyle());
 		shell.setSize(440, 196);
-		shell.setText("Parameter Setting");
+		shell.setText("Cycle Times Setting");
 		shell.setLayout(null);
 		
 		
 
 		Label roundTimesLabel = new Label(shell, SWT.NONE);
 		roundTimesLabel.setBounds(24, 40, 96, 17);
-		roundTimesLabel.setText("RoundTimes");
+		roundTimesLabel.setText("Cycle Times");
 
 		roundTimesText = new Text(shell, SWT.BORDER);
 		roundTimesText.setText("2");
 		roundTimesText.setBounds(150, 37, 73, 23);
 
 		Label info = new Label(shell, SWT.NONE);
-		info.setText("(default roundtimes is 2)");
+		//info.setText("(default roundtimes is 2)");
 		info.setBounds(268, 40, 156, 17);
 
 		Button btnNewButton = new Button(shell, SWT.NONE);

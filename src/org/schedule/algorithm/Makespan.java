@@ -154,7 +154,7 @@ public class Makespan {
 		Date b = new Date();
 		//DecimalFormat df = new DecimalFormat("0.0000");
 		//resultMap.put(algoName, df.format(((double) ER / lineCount)
-		interval = df.format((b.getTime() - a.getTime())/1000);
+		interval = df.format((b.getTime() - a.getTime()));
 		printInfileFIFO();
 	}
 	
@@ -224,7 +224,7 @@ public class Makespan {
 		Date b = new Date();
 	//	DecimalFormat df = new DecimalFormat("0.0000");
 		//resultMap.put(algoName, df.format(((double) ER / lineCount)
-		interval = df.format((b.getTime() - a.getTime())/1000);
+		interval = df.format((b.getTime() - a.getTime()));
 		printInfileEDF();
 	}
 	
@@ -293,7 +293,7 @@ public class Makespan {
 		Date b = new Date();
 		//DecimalFormat df = new DecimalFormat("0.0000");
 		//resultMap.put(algoName, df.format(((double) ER / lineCount)
-		interval = df.format((b.getTime() - a.getTime())/1000);
+		interval = df.format((b.getTime() - a.getTime()));
 		printInfileSTF();
 	}
 	
@@ -362,7 +362,7 @@ public class Makespan {
 				/ (temp4[0] * pe_number));
 		
 		Date b = new Date();
-		interval = df.format((b.getTime() - a.getTime())/1000);
+		interval = df.format((b.getTime() - a.getTime()));
 		//interval = (b.getTime() - a.getTime())/1000;
 		printInfileEFTF();
 	}

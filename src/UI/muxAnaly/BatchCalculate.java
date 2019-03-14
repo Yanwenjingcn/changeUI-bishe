@@ -185,8 +185,8 @@ public class BatchCalculate {
 			fw.write("");
 			fw.close();
 			
-			DecimalFormat df = new DecimalFormat("0.0000");
-			resultMap.put(algoName, df.format(((double) ER / lineCount)) + "," +df.format(((double) UER / lineCount))+ "," + df.format(((double) CR / lineCount))+ "," +df.format( ((double) ET / lineCount)));
+			DecimalFormat df = new DecimalFormat("0.00");
+			resultMap.put(algoName, df.format(((double) ER / lineCount)*100) + "," +df.format(((double) UER / lineCount)*100)+ "," + df.format(((double) CR / lineCount)*100)+ "," +Float.parseFloat(df.format( ((double) ET / lineCount))));
 			
 		} catch (IOException e) {
 			e.printStackTrace();

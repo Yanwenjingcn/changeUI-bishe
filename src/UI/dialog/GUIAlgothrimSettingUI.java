@@ -55,7 +55,7 @@ public class GUIAlgothrimSettingUI extends Dialog {
 
 		shell = new Shell(getParent(), getStyle());
         shell.setSize(410, 420);
-        shell.setText("Parameter Setting");
+        shell.setText("Algorithms");
         shell.setLayout(null);
 
         Label FIFOLabel = new Label(shell, SWT.NONE);
@@ -82,7 +82,9 @@ public class GUIAlgothrimSettingUI extends Dialog {
         
 
         Label WorkflowbasedLabel = new Label(shell, SWT.NONE);
-        WorkflowbasedLabel.setText("Workflowbased");
+        //MCSW
+       // WorkflowbasedLabel.setText("Workflowbased");
+        WorkflowbasedLabel.setText("MCSW");
         WorkflowbasedLabel.setBounds(70, 230, 114, 17);
 
         
@@ -103,7 +105,8 @@ public class GUIAlgothrimSettingUI extends Dialog {
         EFTFButton.setText("EFTF");
         final Button WorkflowbasedButton = new Button(shell, SWT.CHECK);
         WorkflowbasedButton.setBounds(220, 230, 126, 17);
-        WorkflowbasedButton.setText("Workflowbased");
+       // WorkflowbasedButton.setText("Workflowbased");
+        WorkflowbasedButton.setText("MCSW");
         
         //确定按钮
         Button btnNewButton = new Button(shell, SWT.NONE);

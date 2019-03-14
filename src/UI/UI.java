@@ -112,13 +112,13 @@ class UI {
 		shell = new Shell();
 		UICommonParameters.shell = shell;
 		shell.setSize(800, 500);
-		shell.setText("RTWSim");
+		shell.setText("VWGSim");
 		shell.setLayout(new BorderLayout(0, 0));
 
 		final Button button = new Button(shell, SWT.NONE);
 		final Button button_1 = new Button(shell, SWT.NONE);
-		button.setBounds(260, 114, 200, 47);
-		button_1.setBounds(260, 290, 200, 47);
+		button.setBounds(260, 100, 200,80);//这几个数应该是（x，y，长，宽）
+		button_1.setBounds(260, 250, 200, 80);
 
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -131,11 +131,11 @@ class UI {
 				ChooseAlgorithm();
 			}
 		});
-		Chooseslgorithm.setText("ChooseAlgorithm");
+		Chooseslgorithm.setText("Algorithms");
 
 		//----------------------构建参数按钮---------------------
 		MenuItem buildPeremetersMenu = new MenuItem(menu, SWT.CASCADE);
-		buildPeremetersMenu.setText("BuilderParameters");
+		buildPeremetersMenu.setText("Set Parameters");
 		
 		Menu menu_2 = new Menu(buildPeremetersMenu);
 		buildPeremetersMenu.setMenu(menu_2);
@@ -147,7 +147,7 @@ class UI {
 				BuildParameters();
 			}
 		});
-		mntmBuildcommomparameters.setText("BuildCommomParameters");
+		mntmBuildcommomparameters.setText("Set Common Parameters");
 		
 		MenuItem mntmBuildroundtimes = new MenuItem(menu_2, SWT.NONE);
 		mntmBuildroundtimes.addSelectionListener(new SelectionAdapter() {
@@ -156,7 +156,7 @@ class UI {
 				BuildRoundTimesParameters();
 			}
 		});
-		mntmBuildroundtimes.setText("BuildRoundTimes");
+		mntmBuildroundtimes.setText("Set Cycle Times");
 
 		// -----------------还原按钮------------------
 		MenuItem mntmHuanyuan = new MenuItem(menu, SWT.NONE);
@@ -257,14 +257,14 @@ class UI {
 				UICommonParameters.color = color;
 
 				// 展示生成DAG页面（concole）
-				SingleAnalyUI.getConsoleTabItem(tabFolder, display, "console");
+				SingleAnalyUI.getConsoleTabItem(tabFolder, display, "Standard Result");
 
 				// 展示所选择算法的单个 结果页面
 				displayChooseAlgo();
 
 			}
 		});
-		button.setText("单次分析");
+		button.setText("Single Analysis");
 
 		// -----------------多次分析--------------
 
@@ -290,7 +290,7 @@ class UI {
 				CommonParametersUtil.defaultRoundTime=2;
 			}
 		});
-		button_1.setText("多次分析");
+		button_1.setText("Multiple Analysis");
 
 		tabFolder = new TabFolder(shell, SWT.NONE);
 		tabFolder.setBounds(0, 0, 780, 440);

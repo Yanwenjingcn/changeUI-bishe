@@ -1798,7 +1798,7 @@ public class WB {
         rateResult[0][2] = df.format((float) suc / DAGMapList.size());//任务完成利率
         rateResult[0][3] = df.format(diff);
 
-        printInfile(resultPath);
+       // printInfile(resultPath);
 
     }
 

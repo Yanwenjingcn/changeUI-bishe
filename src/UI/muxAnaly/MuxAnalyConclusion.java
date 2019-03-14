@@ -54,9 +54,9 @@ public class MuxAnalyConclusion {
 
 
 	private static void setLowET() {
-		double data=1;
+		double data=100000;
 		String algorithm="";
-		String title="执行时间最短";
+		String title="Minimum Execution Time";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:ETs.entrySet()){
 			if(map.getValue()<data){
@@ -64,7 +64,7 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"ms",conclusion);
 		
 	}
 
@@ -72,7 +72,7 @@ public class MuxAnalyConclusion {
 
 		double data=0;
 		String algorithm="";
-		String title="执行时间最长";
+		String title="Maximum Execution Time";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:ETs.entrySet()){
 			if(map.getValue()>data){
@@ -80,15 +80,15 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"ms",conclusion);
 		
 	}
 
 	
 	private static void setLowCR() {
-		double data=1;
+		double data=100;
 		String algorithm="";
-		String title="完成率最低";
+		String title="Minimum Success Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:CRs.entrySet()){
 			if(map.getValue()<data){
@@ -96,7 +96,7 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 
@@ -104,7 +104,7 @@ public class MuxAnalyConclusion {
 
 		double data=0;
 		String algorithm="";
-		String title="完成率最高";
+		String title="Maximum Success Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:CRs.entrySet()){
 			if(map.getValue()>data){
@@ -112,16 +112,16 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 	
 	
 	
 	private static void setLowUER() {
-		double data=1;
+		double data=100;
 		String algorithm="";
-		String title="处理器有效利用率最低";
+		String title="Minimum Effective Utilization Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:UERs.entrySet()){
 			if(map.getValue()<data){
@@ -129,14 +129,14 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 
 	private static void setHighUER() {
 		double data=0;
 		String algorithm="";
-		String title="处理器有效利用率最高";
+		String title="Maximum Effective Utilization Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:UERs.entrySet()){
 			if(map.getValue()>data){
@@ -144,16 +144,16 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 
 
 
 	private static void setLowER() {
-		double data=1;
+		double data=100;
 		String algorithm="";
-		String title="处理器利用率最低";
+		String title="Minimum Utilization Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:ERs.entrySet()){
 			if(map.getValue()<data){
@@ -161,7 +161,7 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 
@@ -169,7 +169,7 @@ public class MuxAnalyConclusion {
 
 		double data=0;
 		String algorithm="";
-		String title="处理器利用率最高";
+		String title="Maximum Utilization Rate";
 		String conclusion="";
 		for(Map.Entry<String, Double> map:ERs.entrySet()){
 			if(map.getValue()>data){
@@ -177,11 +177,11 @@ public class MuxAnalyConclusion {
 				algorithm=map.getKey();
 			}
 		}
-		insertData(title,algorithm,data,conclusion);
+		insertData(title,algorithm,data+"%",conclusion);
 		
 	}
 	
-	private static void insertData(String title, String algorithm, double data, String conclusion) {
+	private static void insertData(String title, String algorithm, String data, String conclusion) {
 		TableItem item;
 		item = new TableItem(targetTable, SWT.NONE);
 		item.setText(new String[] { title,algorithm.toUpperCase(),String.valueOf(data),conclusion});

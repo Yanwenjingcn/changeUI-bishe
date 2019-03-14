@@ -10,64 +10,38 @@ import java.util.HashMap;
  * @author YanWenjing
  * @date 2018-1-15 ����2:37:23
  */
-public class DAG { 
+public class DAG {
 
-
-	//本作业是否被跳过
+	// 本作业是否被跳过
 	public boolean fillbackpass = false;
-	//本作业是否安排完毕
+	// 本作业是否安排完毕
 	public boolean fillbackdone = false;
-    //作业的编号
+	// 作业的编号
 	public int DAGId;
-	//锁包含的任务数
+	// 锁包含的任务数
 	public int tasknumber;
-	//作业的截止时间
+	// 作业的截止时间
 	public int DAGdeadline;
-	//作业的提交时间
+	// 作业的提交时间
 	public int submittime;
-	//是否被合并
-	public boolean isMerge=false;
+	// 是否被合并
+	public boolean isMerge = false;
 
-	public boolean isMerge() {
-		return isMerge;
-	}
-
-	public void setMerge(boolean isMerge) {
-		this.isMerge = isMerge;
-	}
-	
-	public boolean isSingle=false;
-	
-	public boolean isSingle() {
-		return isSingle;
-	}
-
-	public void setSingle(boolean isSingle) {
-		this.isSingle = isSingle;
-	}
+	public boolean isSingle = false;
 
 	public ArrayList<Task> TaskList;
-	
-	public HashMap<Integer, Integer> DAGDependMap;
-	
-	public HashMap<Integer, Integer> getDAGDependMap() {
-		return DAGDependMap;
-	}
 
-	public void setDAGDependMap(HashMap<Integer, Integer> dAGDependMap) {
-		DAGDependMap = dAGDependMap;
-	}
+	public HashMap<Integer, Integer> DAGDependMap;
 
 	public HashMap<String, Double> DAGDependValueMap;
-	
+
 	public ArrayList<Task> orderbystarttime;
-	
+
 	public HashMap<Integer, ArrayList> taskinlevel;
 
-	//作业的优先级
-	public int property=-1;
+	// 作业的优先级
+	public int property = -1;
 
-	
 	public DAG() {
 		TaskList = new ArrayList<Task>();
 		orderbystarttime = new ArrayList<Task>();
@@ -76,6 +50,29 @@ public class DAG {
 		taskinlevel = new HashMap<Integer, ArrayList>();
 	}
 
+	public boolean isMerge() {
+		return isMerge;
+	}
+
+	public void setMerge(boolean isMerge) {
+		this.isMerge = isMerge;
+	}
+
+	public boolean isSingle() {
+		return isSingle;
+	}
+
+	public void setSingle(boolean isSingle) {
+		this.isSingle = isSingle;
+	}
+
+	public HashMap<Integer, Integer> getDAGDependMap() {
+		return DAGDependMap;
+	}
+
+	public void setDAGDependMap(HashMap<Integer, Integer> dAGDependMap) {
+		DAGDependMap = dAGDependMap;
+	}
 
 	public int getProperty() {
 		return property;
@@ -84,7 +81,6 @@ public class DAG {
 	public void setProperty(int property) {
 		this.property = property;
 	}
-	
 
 	public void setfillbackpass(boolean pass) {
 		this.fillbackpass = pass;
@@ -123,7 +119,6 @@ public class DAG {
 //	public void setdepandmap(HashMap<Integer, Integer> map) {
 //		this.DAGDependMap = map;
 //	}
-	
 
 	public void setdependvalue(HashMap<String, Double> value) {
 		this.DAGDependValueMap = value;
@@ -164,15 +159,11 @@ public class DAG {
 	public int getsubmittime() {
 		return submittime;
 	}
-	
+
 	/**
 	 * 
-	* @Title: isDepend
-	* @Description:Determine whether there is a dependency between two tasks
-	* @param src
-	* @param des
-	* @return:
-	* @throws
+	 * @Title: isDepend @Description:Determine whether there is a dependency between
+	 * two tasks @param src @param des @return: @throws
 	 */
 	public boolean isDepend(String src, String des) {
 		if (DAGDependValueMap.containsKey(src + " " + des)) {

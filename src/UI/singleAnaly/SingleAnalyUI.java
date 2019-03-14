@@ -1,5 +1,6 @@
 package UI.singleAnaly;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +69,9 @@ public class SingleAnalyUI {
 	public static TabItem getAlgorithmTabItem(TabFolder tabFolder, String itemname) {
 		TabItem algoTabItem = new TabItem(tabFolder, SWT.NONE);
 		algoTabItem.setText(itemname);
+		if(itemname.equals("Workflowbased")) {
+			algoTabItem.setText("MCSW");
+		}
 
 		// 构建带滑块的组件页面
 		ScrolledComposite scrolledCompositeAlgo = new ScrolledComposite(tabFolder,SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -178,31 +182,32 @@ public class SingleAnalyUI {
 
 	private static int[][] getMessage(String itemname, Label lblrate) {
 
+		DecimalFormat df = new DecimalFormat("0.00");
 		// 构建TabItem
 		if (itemname.equals("FIFO")) {
-			lblrate.setText("    UR : " + Makespan.rate[0][0] + "    EUR : " + Makespan.rate[0][2] + "    SR : "
-					+ Makespan.rate[0][1]);
+			lblrate.setText("    UR : " + df.format(Float.parseFloat(Makespan.rate[0][0])*100)+"%" + "    EUR : " + df.format(Float.parseFloat(Makespan.rate[0][2])*100)+"%" + "    SR : "
+					+ df.format(Float.parseFloat(Makespan.rate[0][1])*100)+"%");
 			return FIFO.message;
 
 		}
 		if (itemname.equals("EDF")) {
-			lblrate.setText("    UR : " + Makespan.rate[1][0] + "    EUR : " + Makespan.rate[1][2] + "    SR : "
-					+ Makespan.rate[1][1]);
+			lblrate.setText("    UR : " + df.format(Float.parseFloat(Makespan.rate[1][0])*100)+"%" + "    EUR : " + df.format(Float.parseFloat(Makespan.rate[1][2])*100)+"%" + "    SR : "
+					+ df.format(Float.parseFloat(Makespan.rate[1][1])*100)+"%");
 			return EDF.message;
 		}
 		if (itemname.equals("STF")) {
-			lblrate.setText("    UR : " + Makespan.rate[2][0] + "    EUR : " + Makespan.rate[2][2] + "    SR : "
-					+ Makespan.rate[2][1]);
+			lblrate.setText("    UR : " + df.format(Float.parseFloat(Makespan.rate[2][0])*100)+"%"+ "    EUR : " + df.format(Float.parseFloat(Makespan.rate[2][2])*100)+"%" + "    SR : "
+					+ df.format(Float.parseFloat(Makespan.rate[2][1])*100)+"%");
 			return STF.message;
 		}
 		if (itemname.equals("EFTF")) {
-			lblrate.setText("    UR : " + Makespan.rate[3][0] + "    EUR : " + Makespan.rate[3][2] + "    SR : "
-					+ Makespan.rate[3][1]);
+			lblrate.setText("    UR : " + df.format(Float.parseFloat(Makespan.rate[3][0])*100)+"%" + "    EUR : " + df.format(Float.parseFloat(Makespan.rate[3][2])*100)+"%" + "    SR : "
+					+ df.format(Float.parseFloat(Makespan.rate[3][1])*100)+"%");
 			return EFTF.message;
 		}
 		if (itemname.equals("Workflowbased")) {
-			lblrate.setText("    UR : " + Semple.rateResult[0][0] + "    EUR : " + Semple.rateResult[0][1] + "    SR : "
-					+ Semple.rateResult[0][2]);
+			lblrate.setText("    UR : " + df.format(Float.parseFloat(Semple.rateResult[0][0])*100)+"%" + "    EUR : " + df.format(Float.parseFloat(Semple.rateResult[0][1])*100)+"%" + "    SR : "
+					+ df.format(Float.parseFloat(Semple.rateResult[0][2])*100)+"%");
 			return Semple.message;
 		}
 		return null;

@@ -31,6 +31,8 @@ public class XMLOutputUtil {
 	private FileWriter fileWriter;
 	private List<String> nodeIdList;
 
+	
+
 	/**
 	 * 
 	 * @Title: clearDir
@@ -51,6 +53,7 @@ public class XMLOutputUtil {
 			}
 		}
 	}
+
 
 	/**
 	 * 

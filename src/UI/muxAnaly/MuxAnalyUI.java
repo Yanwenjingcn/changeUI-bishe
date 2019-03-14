@@ -70,7 +70,7 @@ public class MuxAnalyUI {
 
 		shell = new Shell();
 		shell.setSize(800, 500);
-		shell.setText("SWT Application");
+		shell.setText("Multiple Analysis");
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
 
 		Composite compositeUp = new Composite(shell, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -106,7 +106,7 @@ public class MuxAnalyUI {
 	 */
 	private void insertDataInTableDown() {
 		// 创建下表头的字符串数组
-		String[] tableDownHeader = { "比较项", "算法名", "结果值", "结论" };
+		String[] tableDownHeader = { "Item", "Algorithms", "Data" };
 		for (int i = 0; i < tableDownHeader.length; i++) {
 			TableColumn tableColumn = new TableColumn(tableDown, SWT.NONE);
 			tableColumn.setText(tableDownHeader[i]);
@@ -134,7 +134,7 @@ public class MuxAnalyUI {
 	public static void insertDataInTableUp() {
 
 		// 创建上表内容表头的字符串数组
-		String[] tableUpHeader = { "算法名", "处理器利用率", "处理器有效利用率", "完成率", "执行时间", "简介" };
+		String[] tableUpHeader = { "Algorithms", "ER(%)", "UER(%)", "SR(%)", "Execute Time(ms)"};
 		for (int i = 0; i < tableUpHeader.length; i++) {
 			TableColumn tableColumn = new TableColumn(tableUp, SWT.NONE);
 			tableColumn.setText(tableUpHeader[i]);

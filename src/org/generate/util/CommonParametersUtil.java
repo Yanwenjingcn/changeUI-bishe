@@ -16,7 +16,7 @@ public class CommonParametersUtil {
 	
 	public static int dagLevelFlag = 2;
 
-	public static double deadLineTimes = 1.1;
+	public static double deadLineTimes = 1.2;
 	
 	public static int processorNumber = 8;
 	

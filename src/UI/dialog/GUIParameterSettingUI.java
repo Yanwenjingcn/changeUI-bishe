@@ -73,19 +73,19 @@ public class GUIParameterSettingUI extends Dialog {
 	private void createContents() {
 		parameterSettingShell = new Shell(getParent(), getStyle());
 		parameterSettingShell.setSize(440, 420);
-		parameterSettingShell.setText("Parameter Setting");
+		parameterSettingShell.setText("Parameters Setting");
 		parameterSettingShell.setLayout(null);
 
 		Label lblNewLabel = new Label(parameterSettingShell, SWT.NONE);
 		lblNewLabel.setBounds(24, 30, 96, 17);
-		lblNewLabel.setText("TimeWindow");
+		lblNewLabel.setText("Time Window");
 
 		Label lblMaxdeviationrate = new Label(parameterSettingShell, SWT.NONE);
-		lblMaxdeviationrate.setText("TaskAverageLength");
-		lblMaxdeviationrate.setBounds(24, 71, 113, 17);
+		lblMaxdeviationrate.setText("Average Task Length");
+		lblMaxdeviationrate.setBounds(24, 71, 125, 17);
 
 		Label lblPricingInterval = new Label(parameterSettingShell, SWT.NONE);
-		lblPricingInterval.setText("DAGAverageSize");
+		lblPricingInterval.setText("Average DAG Size");
 		lblPricingInterval.setBounds(24, 126, 113, 17);
 
 		text_4 = new Text(parameterSettingShell, SWT.BORDER);
@@ -98,6 +98,7 @@ public class GUIParameterSettingUI extends Dialog {
 
 		text_1 = new Text(parameterSettingShell, SWT.BORDER);
 		text_1.setText("40000");
+		//text_1.setText("8000");
 		text_1.setBounds(190, 27, 73, 23);
 
 		Label lbldaglength = new Label(parameterSettingShell, SWT.NONE);
@@ -110,7 +111,7 @@ public class GUIParameterSettingUI extends Dialog {
 
 		Label lblRuntimeDistributionType = new Label(parameterSettingShell,
 				SWT.NONE);
-		lblRuntimeDistributionType.setText("DAGLevelFlag");
+		lblRuntimeDistributionType.setText("DAG Parallelism");
 		lblRuntimeDistributionType.setBounds(24, 175, 156, 17);
 
 		Composite composite = new Composite(parameterSettingShell, SWT.NONE);
@@ -130,15 +131,16 @@ public class GUIParameterSettingUI extends Dialog {
 		btnRadioButton.setText("1");
 
 		Label lblSystemBandwidth = new Label(parameterSettingShell, SWT.NONE);
-		lblSystemBandwidth.setText("DeadlineTimes");
+		lblSystemBandwidth.setText("Deadline Multiple");
 		lblSystemBandwidth.setBounds(24, 234, 109, 17);
 
 		text_2 = new Text(parameterSettingShell, SWT.BORDER);
-		text_2.setText("1.1");
+		text_2.setText("1.5");
+		//text_2.setText("1.2");
 		text_2.setBounds(190, 231, 73, 23);
 
 		Label lbldead = new Label(parameterSettingShell, SWT.NONE);
-		lbldead.setText("(optional:1.05/1.1/1.2)");
+		lbldead.setText("(optional:1.2/1.5/1.8)");
 		lbldead.setBounds(270, 231, 156, 17);
 
 		Button btnNewButton = new Button(parameterSettingShell, SWT.NONE);
@@ -179,7 +181,7 @@ public class GUIParameterSettingUI extends Dialog {
 		btnNewButton_1.setText("Cancel");
 
 		Label lblVmSetupTime = new Label(parameterSettingShell, SWT.NONE);
-		lblVmSetupTime.setText("ProcessorNumber");
+		lblVmSetupTime.setText("Resource Number");
 		lblVmSetupTime.setBounds(24, 273, 113, 17);
 
 		text_3 = new Text(parameterSettingShell, SWT.BORDER);
